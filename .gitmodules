@@ -1,0 +1,6 @@
+[submodule "Ext/JBPluginBase"]
+	path = Ext/JBPluginBase
+	url = https://github.com/JanosGit/PluginBase.git
+[submodule "Ext/JUCE"]
+	path = Ext/JUCE
+	url = https://github.com/WeAreROLI/JUCE.git
