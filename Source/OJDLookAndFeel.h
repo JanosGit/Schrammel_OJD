@@ -28,9 +28,7 @@ public:
                            int x, int y,
                            int width, int height,
                            float sliderPosProportional,
-                           float rotaryStartAngle,
-                           float rotaryEndAngle,
-                           juce::Slider&) override
+                           float, float, juce::Slider&) override
     {
 
         auto bounds = getSquareCenteredInRectangle (x, y, width, height);
@@ -44,8 +42,7 @@ public:
 
         knob->setTransform (transform);
 
-        knob->drawAt (g, x, y, 1.0f);
-
+        knob->drawAt (g, static_cast<float> (x), static_cast<float> (y), 1.0f);
     }
 
     template <typename T>
@@ -80,9 +77,9 @@ public:
         g.strokePath (path, juce::PathStrokeType (1.5f));
     }
 
-    void drawButtonBackground (juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+    void drawButtonBackground (juce::Graphics& g, juce::Button& button, const juce::Colour& backgroundColour, bool, bool) override
     {
-        g.fillAll   (juce::Colours::black);
+        g.fillAll   (backgroundColour);
         g.setColour (juce::Colours::white);
         g.drawRect  (button.getLocalBounds());
     }
