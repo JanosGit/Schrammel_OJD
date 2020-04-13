@@ -10,3 +10,5 @@ Builds/
 Deployment/*/Bin/
 Deployment/MacOS/OJD/
 
+
+Deployment/Windows/Output/
