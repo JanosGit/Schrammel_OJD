@@ -4,17 +4,16 @@
 #include "OJDAudioProcessorEditor.h"
 
 //==============================================================================
-OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& p)
- :  juce::AudioProcessorEditor (&p),
-    processor        (p),
+OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
+ :  juce::AudioProcessorEditor (&proc),
     layouts          (*this),
     OJDLookAndFeel   (*drawables.knob),
-    driveSlider      (p.parameters, OJDParameters::Drive::id),
-    toneSlider       (p.parameters, OJDParameters::Tone::id),
-    volumeSlider     (p.parameters, OJDParameters::Volume::id),
-    bypassSwitch     (p.parameters, OJDParameters::Bypass::id, "Bypass", juce::DrawableButton::ImageFitted),
-    bypassLED        (p.parameters, OJDParameters::Bypass::id, "LED",    juce::DrawableButton::ImageFitted),
-    hpLpSwitch       (p.parameters, OJDParameters::HpLp::id,   "HpLp",   juce::DrawableButton::ImageFitted)
+    driveSlider      (proc.parameters, OJDParameters::Drive::id),
+    toneSlider       (proc.parameters, OJDParameters::Tone::id),
+    volumeSlider     (proc.parameters, OJDParameters::Volume::id),
+    bypassSwitch     (proc.parameters, OJDParameters::Bypass::id, "Bypass", juce::DrawableButton::ImageFitted),
+    bypassLED        (proc.parameters, OJDParameters::Bypass::id, "LED",    juce::DrawableButton::ImageFitted),
+    hpLpSwitch       (proc.parameters, OJDParameters::HpLp::id,   "HpLp",   juce::DrawableButton::ImageFitted)
 {
     setLookAndFeel (&OJDLookAndFeel);
 
@@ -26,13 +25,13 @@ OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& p)
 
     addHpLpSwitchAndSetStyle();
 
-    addPresetManager();
+    addPresetManager (proc);
 
     setResizable (true, true);
     setConstrainer (this);
 
     // Make the UI size restorable
-    auto uiStateTree = processor.parameters.state.getChildWithName (uiStateTreeType);
+    auto uiStateTree = proc.parameters.state.getChildWithName (uiStateTreeType);
 
     lastUIWidth .referTo (uiStateTree.getPropertyAsValue (uiStateTreeWidth,  nullptr));
     lastUIHeight.referTo (uiStateTree.getPropertyAsValue (uiStateTreeHeight, nullptr));
@@ -134,9 +133,9 @@ void OJDAudioProcessorEditor::addHpLpSwitchAndSetStyle()
     addAndMakeVisible (hpLpSwitch);
 }
 
-void OJDAudioProcessorEditor::addPresetManager()
+void OJDAudioProcessorEditor::addPresetManager (OJDAudioProcessor& processorToControl)
 {
-    presetManagerComponent = processor.stateAndPresetManager.createPresetManagerComponent (*this, true);
+    presetManagerComponent = processorToControl.stateAndPresetManager.createPresetManagerComponent (*this, true);
     addAndMakeVisible (*presetManagerComponent);
 }
 

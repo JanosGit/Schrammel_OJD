@@ -12,7 +12,7 @@ class OJDAudioProcessorEditor  : public juce::AudioProcessorEditor,
 {
 public:
     OJDAudioProcessorEditor (OJDAudioProcessor&);
-    ~OJDAudioProcessorEditor();
+    ~OJDAudioProcessorEditor() override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -21,7 +21,6 @@ public:
     /** To be called by the processor to add a subtree to the plugin state that contains GUI-related information */
     static const juce::ValueTree createUIStateSubtree();
 
-    OJDAudioProcessor& processor;
 private:
     void checkBounds (juce::Rectangle<int>& bounds, const juce::Rectangle<int>&, const juce::Rectangle<int>&, bool, bool, bool, bool) override;
 
@@ -36,7 +35,7 @@ private:
     /** Adds the HP/LP switch to the component and sets its style */
     void addHpLpSwitchAndSetStyle();
 
-    void addPresetManager();
+    void addPresetManager (OJDAudioProcessor& processorToControl);
 
     struct Drawables
     {

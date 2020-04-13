@@ -41,8 +41,6 @@ public:
         };
     }
 
-    ~Waveshaper() { }
-
     void prepare (const juce::dsp::ProcessSpec& spec) override
     {
         oversampler.initProcessing (spec.maximumBlockSize);

@@ -18,7 +18,6 @@ public:
 
     //==============================================================================
     OJDAudioProcessor();
-    ~OJDAudioProcessor();
 
     //==============================================================================
     void prepareResources (bool sampleRateChanged, bool maxBlockSizeChanged, bool numChannelsChanged) override;

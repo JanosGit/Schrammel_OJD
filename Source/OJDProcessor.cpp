@@ -23,11 +23,6 @@ OJDAudioProcessor::OJDAudioProcessor()
     parameters.state.appendChild (OJDAudioProcessorEditor::createUIStateSubtree(), nullptr);
 }
 
-OJDAudioProcessor::~OJDAudioProcessor()
-{
-
-}
-
 void OJDAudioProcessor::prepareResources (bool sampleRateChanged, bool maxBlockSizeChanged, bool numChannelsChanged)
 {
     if (numChannelsChanged)

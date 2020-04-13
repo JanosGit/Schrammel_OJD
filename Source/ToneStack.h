@@ -23,11 +23,9 @@ public:
 
     ToneStack() {}
 
-    ~ToneStack() {}
-
     void prepare (const juce::dsp::ProcessSpec& spec) override
     {
-        hpfTempBuffer.setSize (spec.numChannels, spec.maximumBlockSize);
+        hpfTempBuffer.setSize (static_cast<int> (spec.numChannels), static_cast<int> (spec.maximumBlockSize));
         hpfTempBlock = std::make_unique<juce::dsp::AudioBlock<float>> (hpfTempBuffer);
 
         const auto hpModeFreq = 358.0f;
@@ -76,10 +74,8 @@ public:
     void setTone (float newTone)    { tone = newTone; }
 
 private:
-    float currentToneValue;
     Mode currentMode;
 
-private:
     juce::dsp::IIR::Filter<float> hpf, lpf;
 
     juce::dsp::IIR::Coefficients<float>::Ptr hpfCoeffsHPMode, hpfCoeffsLPMode;
