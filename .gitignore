@@ -4,3 +4,9 @@ JuceLibraryCode/
 DAWTest/
 
 Builds/
+
+*.dmg
+
+Deployment/*/Bin/
+Deployment/MacOS/OJD/
+
