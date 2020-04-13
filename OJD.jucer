@@ -73,7 +73,8 @@
         <CONFIGURATION isDebug="1" name="Debug" enablePluginBinaryCopyStep="1"/>
         <CONFIGURATION isDebug="0" name="Release" enablePluginBinaryCopyStep="1"/>
         <CONFIGURATION isDebug="0" name="Deployment" enablePluginBinaryCopyStep="1"
-                       vst3BinaryLocation="$(ProjectPath)\Deployment\Windows\Bin\VST3"/>
+                       vst3BinaryLocation="$(SolutionDir)..\..\Deployment\Windows\Bin\VST3"
+                       prebuildCommand="if not exist $(SolutionDir)..\..\Deployment\Windows\Bin\VST3 mkdir $(SolutionDir)..\..\Deployment\Windows\Bin\VST3"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_gui_extra" path="Ext\JUCE\modules"/>
