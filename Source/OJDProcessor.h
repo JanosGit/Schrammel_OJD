@@ -73,6 +73,7 @@ private:
     juce::dsp::IIR::Coefficients<float>::Ptr biquadPostDriveBoost2Coeffs;
     juce::dsp::IIR::Coefficients<float>::Ptr biquadPostDriveBoost3Coeffs;
 
+    void recalculateFilters();
     void updateParametersForProcessorChain();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OJDAudioProcessor)
