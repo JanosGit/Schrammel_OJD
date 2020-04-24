@@ -66,3 +66,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout OJDParameters::createParamet
             std::make_unique<juce::AudioParameterBool>  (Bypass::id, "Bypass",  false, "", Bypass::stringFromBoolConversion, Bypass::boolFromStringConversion)
     });
 }
+
+juce::StringArray OJDParameters::getPresetMangagerParameters()
+{
+    return { Drive::id, Tone::id, Volume::id, HpLp::id };
+}
