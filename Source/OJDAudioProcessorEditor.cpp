@@ -6,6 +6,7 @@
 //==============================================================================
 OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
  :  juce::AudioProcessorEditor (&proc),
+    drawables        (proc.drawables),
     layouts          (*this),
     OJDLookAndFeel   (*drawables.knob),
     driveSlider      (proc.parameters, OJDParameters::Drive::id),
@@ -15,6 +16,8 @@ OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
     bypassLED        (proc.parameters, OJDParameters::Bypass::id, "LED",    juce::DrawableButton::ImageFitted),
     hpLpSwitch       (proc.parameters, OJDParameters::HpLp::id,   "HpLp",   juce::DrawableButton::ImageFitted)
 {
+    drawables.finishedLoading.wait();
+
     setLookAndFeel (&OJDLookAndFeel);
 
     addSliderAndSetStyle (volumeSlider);
@@ -139,22 +142,30 @@ void OJDAudioProcessorEditor::addPresetManager (OJDAudioProcessor& processorToCo
     addAndMakeVisible (*presetManagerComponent);
 }
 
-OJDAudioProcessorEditor::Drawables::Drawables()
-  : editorBackground (juce::Drawable::createFromImageData (BinaryData::background_svg,    BinaryData::background_svgSize)),
-    knob             (juce::Drawable::createFromImageData (BinaryData::knob_svg,          BinaryData::knob_svgSize)),
-    slideSwitchHP    (juce::Drawable::createFromImageData (BinaryData::slideSwitchHP_svg, BinaryData::slideSwitchHP_svgSize)),
-    slideSwitchLP    (juce::Drawable::createFromImageData (BinaryData::slideSwitchLP_svg, BinaryData::slideSwitchLP_svgSize)),
-    footSwitch       (juce::Drawable::createFromImageData (BinaryData::footSwitch_svg,    BinaryData::footSwitch_svgSize)),
-    ledOn            (juce::Drawable::createFromImageData (BinaryData::ledOn_svg,         BinaryData::ledOn_svgSize)),
-    ledOff           (juce::Drawable::createFromImageData (BinaryData::ledOff_svg,        BinaryData::ledOff_svgSize))
+Drawables::Drawables()
 {
-    jassert (editorBackground != nullptr);
-    jassert (knob             != nullptr);
-    jassert (slideSwitchLP    != nullptr);
-    jassert (slideSwitchHP    != nullptr);
-    jassert (footSwitch       != nullptr);
-    jassert (ledOn            != nullptr);
-    jassert (ledOff           != nullptr);
+    juce::Thread::launch ([this]()
+    {
+        const juce::MessageManagerLock mml;
+
+        editorBackground = std::move (juce::Drawable::createFromImageData (BinaryData::background_svg,    BinaryData::background_svgSize));
+        knob             = std::move (juce::Drawable::createFromImageData (BinaryData::knob_svg,          BinaryData::knob_svgSize));
+        slideSwitchHP    = std::move (juce::Drawable::createFromImageData (BinaryData::slideSwitchHP_svg, BinaryData::slideSwitchHP_svgSize));
+        slideSwitchLP    = std::move (juce::Drawable::createFromImageData (BinaryData::slideSwitchLP_svg, BinaryData::slideSwitchLP_svgSize));
+        footSwitch       = std::move (juce::Drawable::createFromImageData (BinaryData::footSwitch_svg,    BinaryData::footSwitch_svgSize));
+        ledOn            = std::move (juce::Drawable::createFromImageData (BinaryData::ledOn_svg,         BinaryData::ledOn_svgSize));
+        ledOff           = std::move (juce::Drawable::createFromImageData (BinaryData::ledOff_svg,        BinaryData::ledOff_svgSize));
+
+        jassert (editorBackground != nullptr);
+        jassert (knob             != nullptr);
+        jassert (slideSwitchLP    != nullptr);
+        jassert (slideSwitchHP    != nullptr);
+        jassert (footSwitch       != nullptr);
+        jassert (ledOn            != nullptr);
+        jassert (ledOff           != nullptr);
+
+        finishedLoading.signal();
+    });
 }
 
 void OJDAudioProcessorEditor::SubcomponentLayouts::recalculate()

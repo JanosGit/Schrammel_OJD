@@ -7,6 +7,23 @@
 #include "ToneStack.h"
 #include "Waveshaper.h"
 
+struct Drawables
+{
+    using DPtr = std::unique_ptr<juce::Drawable>;
+
+    Drawables();
+
+    DPtr editorBackground;
+    DPtr knob;
+    DPtr slideSwitchHP;
+    DPtr slideSwitchLP;
+    DPtr footSwitch;
+    DPtr ledOn;
+    DPtr ledOff;
+
+    juce::WaitableEvent finishedLoading { true };
+};
+
 //==============================================================================
 /**
 */
@@ -29,6 +46,8 @@ public:
     void parameterChanged (const juce::String &parameterID, float newValue) override;
 
     juce::AudioProcessorEditor* createEditor() override;
+
+    Drawables drawables;
 
     /** This processor will only process one channel */
     static const int numChannels = 1;

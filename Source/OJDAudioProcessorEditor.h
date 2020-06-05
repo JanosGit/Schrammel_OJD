@@ -37,20 +37,10 @@ private:
 
     void addPresetManager (OJDAudioProcessor& processorToControl);
 
-    struct Drawables
-    {
-        using DPtr = std::unique_ptr<juce::Drawable>;
+public:
 
-        Drawables();
 
-        DPtr editorBackground;
-        DPtr knob;
-        DPtr slideSwitchHP;
-        DPtr slideSwitchLP;
-        DPtr footSwitch;
-        DPtr ledOn;
-        DPtr ledOff;
-    };
+private:
 
     struct SubcomponentLayouts
     {
@@ -87,7 +77,7 @@ private:
         int volumeHeight;
     };
 
-    Drawables drawables;
+    Drawables& drawables;
     SubcomponentLayouts layouts;
 
     OJDLookAndFeel OJDLookAndFeel;
