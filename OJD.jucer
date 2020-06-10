@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="vs7o3a" name="OJD" projectType="audioplug" jucerVersion="5.4.7"
-              pluginFormats="buildAU,buildVST3" defines="DONT_SET_USING_JUCE_NAMESPACE=1"
+              pluginFormats="buildAAX,buildAU,buildVST3" defines="DONT_SET_USING_JUCE_NAMESPACE=1"
               reportAppUsage="0" pluginVST3Category="Distortion" pluginAAXCategory="64"
               companyName="Schrammel" companyWebsite="github.com/janosgit"
               version="0.1.0" pluginManufacturerCode="Srml" aaxIdentifier="de.schrammel.ojd">
