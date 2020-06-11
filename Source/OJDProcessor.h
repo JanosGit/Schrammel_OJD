@@ -6,27 +6,8 @@
 #include "OJDParameters.h"
 #include "ToneStack.h"
 #include "Waveshaper.h"
+#include "Drawables.h"
 
-struct Drawables
-{
-    using DPtr = std::unique_ptr<juce::Drawable>;
-
-    Drawables();
-
-    DPtr editorBackground;
-    DPtr knob;
-    DPtr slideSwitchHP;
-    DPtr slideSwitchLP;
-    DPtr footSwitch;
-    DPtr ledOn;
-    DPtr ledOff;
-
-    juce::WaitableEvent finishedLoading { true };
-};
-
-//==============================================================================
-/**
-*/
 class OJDAudioProcessor
   : public jb::PluginAudioProcessorBase<OJDParameters>,
     public juce::AudioProcessorValueTreeState::Listener

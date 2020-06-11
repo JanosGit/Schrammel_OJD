@@ -80,7 +80,7 @@ private:
     Drawables& drawables;
     SubcomponentLayouts layouts;
 
-    OJDLookAndFeel OJDLookAndFeel;
+    OJDLookAndFeel ojdLookAndFeel;
 
     jb::AttachedWidget<juce::Slider> driveSlider, toneSlider, volumeSlider;
     jb::AttachedWidget<juce::DrawableButton> bypassSwitch, bypassLED, hpLpSwitch;
