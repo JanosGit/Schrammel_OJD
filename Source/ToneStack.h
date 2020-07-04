@@ -70,7 +70,7 @@ public:
         }
     }
 
-    /** Takes the normalized 0-1 Tone value */
+    /** Takes the normalised 0-1 Tone value */
     void setTone (float newTone)    { tone = newTone; }
 
 private:

@@ -6,18 +6,18 @@
 using BiquadCoeffs = juce::dsp::IIR::Coefficients<float>;
 
 OJDAudioProcessor::OJDAudioProcessor()
-  : rawValueDrive  (*parameters.getRawParameterValue (OJDParameters::Drive::id)),
-    rawValueTone   (*parameters.getRawParameterValue (OJDParameters::Tone::id)),
-    rawValueVolume (*parameters.getRawParameterValue (OJDParameters::Volume::id)),
-    rawValueHpLp   (*parameters.getRawParameterValue (OJDParameters::HpLp::id))
+  : rawValueDrive  (*parameters.getRawParameterValue (OJDParameters::Sliders::Drive::id)),
+    rawValueTone   (*parameters.getRawParameterValue (OJDParameters::Sliders::Tone::id)),
+    rawValueVolume (*parameters.getRawParameterValue (OJDParameters::Sliders::Volume::id)),
+    rawValueHpLp   (*parameters.getRawParameterValue (OJDParameters::Switches::HpLp::id))
 {
     // setup always constant elements in the chain
     chain.get<preWaveshaperGain>().setGainLinear (11.0f);
 
     // If the drive or hp/lp mode changes, some allocating biquad coefficient recalculation is done. The parameter
     // listener callback is used for this
-    parameters.addParameterListener (OJDParameters::Drive::id, this);
-    parameters.addParameterListener (OJDParameters::HpLp::id, this);
+    parameters.addParameterListener (OJDParameters::Sliders::Drive::id, this);
+    parameters.addParameterListener (OJDParameters::Switches::HpLp::id, this);
 
     // Add a subtree where the editor stores some states
     parameters.state.appendChild (OJDAudioProcessorEditor::createUIStateSubtree(), nullptr);
@@ -84,11 +84,11 @@ void OJDAudioProcessor::updateParametersForProcessorChain()
     }
 
     // Tone
-    chain.get<tone>().setHpLpMode (OJDParameters::HpLp::getModeFromRaw (rawValueHpLp));
-    chain.get<tone>().setTone     (OJDParameters::Tone::range.convertTo0to1 (rawValueTone));
+    chain.get<tone>().setHpLpMode (OJDParameters::Switches::HpLp::getModeFromRaw (rawValueHpLp));
+    chain.get<tone>().setTone     (OJDParameters::Sliders::normaliseRawValue (rawValueTone));
 
     // Volume
-    chain.get<volume>().setGainDecibels (rawValueVolume);
+    chain.get<volume>().setGainDecibels (OJDParameters::Sliders::Volume::dBValueFromRawValue (rawValueVolume));
 }
 
 void OJDAudioProcessor::recalculateFilters()
@@ -97,13 +97,13 @@ void OJDAudioProcessor::recalculateFilters()
     if (sr == 0.0)
         return;
 
-    const auto mode = OJDParameters::HpLp::getModeFromRaw(rawValueHpLp);
-    const auto drive = OJDParameters::Drive::range.convertTo0to1(rawValueDrive);
-    const auto driveSquared = drive * drive;
+    const auto mode            = OJDParameters::Switches::HpLp::getModeFromRaw(rawValueHpLp);
+    const auto driveNormalised = OJDParameters::Sliders::normaliseRawValue (rawValueDrive);
+    const auto driveSquared = driveNormalised * driveNormalised;
 
-    const auto biquadPreDriveBoostFreq = -1400.0f * driveSquared + 500.0f * drive + 1600.0f;
-    const auto biquadPreDriveBoostQ = -0.1f * drive + 0.15f;
-    const auto biquadPreDriveBoostGain = 32 * drive + 4;
+    const auto biquadPreDriveBoostFreq = -1400.0f * driveSquared + 500.0f * driveNormalised + 1600.0f;
+    const auto biquadPreDriveBoostQ = -0.1f * driveNormalised + 0.15f;
+    const auto biquadPreDriveBoostGain = 32 * driveNormalised + 4;
 
     const auto biquadPreDriveNotchFreq = 8e3f;
     const auto biquadPreDriveNotchQ = 0.8f;
@@ -115,7 +115,7 @@ void OJDAudioProcessor::recalculateFilters()
 
     const auto biquadPostDriveBoost2Freq = 74.0f;
     const auto biquadPostDriveBoost2Q = 0.2f;
-    const auto biquadPostDriveBoost2Gain = 7.38f * drive + 8.12f;
+    const auto biquadPostDriveBoost2Gain = 7.38f * driveNormalised + 8.12f;
 
     const auto biquadPostDriveBoost3Freq = 2935.0f;
     const auto biquadPostDriveBoost3Q = 0.1f;
@@ -140,7 +140,7 @@ void OJDAudioProcessor::recalculateFilters()
 
 void OJDAudioProcessor::parameterChanged (const juce::String& parameterID, float)
 {
-    jassert (parameterID == OJDParameters::Drive::id || parameterID == OJDParameters::HpLp::id);
+    jassert (parameterID == OJDParameters::Sliders::Drive::id || parameterID == OJDParameters::Switches::HpLp::id);
     juce::ignoreUnused (parameterID);
 
     recalculateFilters();

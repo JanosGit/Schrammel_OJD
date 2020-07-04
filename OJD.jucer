@@ -33,6 +33,7 @@
               file="Source/OJDProcessor.cpp"/>
       </GROUP>
       <GROUP id="{E8008988-0238-5005-5A1E-413A44FC5207}" name="Editor">
+        <FILE id="FIFVZp" name="Drawables.h" compile="0" resource="0" file="Source/Drawables.h"/>
         <FILE id="JFp1qE" name="OJDLookAndFeel.h" compile="0" resource="0"
               file="Source/OJDLookAndFeel.h"/>
         <FILE id="DI62DB" name="OJDAudioProcessorEditor.h" compile="0" resource="0"

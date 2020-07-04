@@ -11,63 +11,92 @@
 #include "OJDParameters.h"
 
 //================ IDs =================================================================================================
-const juce::String OJDParameters::Drive::id  ("Drive");
-const juce::String OJDParameters::Tone::id   ("Tone");
-const juce::String OJDParameters::Volume::id ("Volume");
-const juce::String OJDParameters::HpLp::id   ("HpLp");
-const juce::String OJDParameters::Bypass::id ("Bypass");
+const juce::String OJDParameters::Sliders::Drive::id  ("Drive");
+const juce::String OJDParameters::Sliders::Tone::id   ("Tone");
+const juce::String OJDParameters::Sliders::Volume::id ("Volume");
+const juce::String OJDParameters::Switches::HpLp::id   ("HpLp");
+const juce::String OJDParameters::Switches::Bypass::id ("Bypass");
 
 
 //================ Ranges ==============================================================================================
-using FloatRange = juce::NormalisableRange<float>;
+constexpr float minDisplayRange = 0.0f;
+constexpr float maxDisplayRange = 10.0f;
+constexpr float minVolumeDb = -60.0f;
+constexpr float maxVolumeDb = -20.0f;
 
-const FloatRange OJDParameters::Drive::range  (1.0f, 10.0f, 0.01f);
-const FloatRange OJDParameters::Tone::range   (0.5f, 15.0f, 0.01f);
-const FloatRange OJDParameters::Volume::range (-60.0f, -20.0f, 0.01f);
+const juce::NormalisableRange<float> OJDParameters::Sliders::displayRange (minDisplayRange, maxDisplayRange, 0.01f);
 
-
-//================ String <-> value conversion =========================================================================
-juce::String stringWithMaxLength (const juce::String& s, int maximumStringLength)
+float OJDParameters::Sliders::normaliseRawValue (const std::atomic<float>& rawValue)
 {
-    auto len = s.length();
-
-    if (len > maximumStringLength)
-        return s.substring (0, maximumStringLength - 1);
-
-    return s;
+    return rawValue / maxDisplayRange;
 }
 
-juce::String OJDParameters::HpLp::stringFromBoolConversion (bool isHp, int maximumStringLength)
+float OJDParameters::Sliders::Volume::dBValueFromRawValue (const std::atomic<float>& rawValue)
+{
+    return juce::jmap (rawValue.load(), minDisplayRange, maxDisplayRange, minVolumeDb, maxVolumeDb);
+}
+
+//================ String <-> value conversion =========================================================================
+juce::String stringWithMaxLength (juce::String&& s, int maximumStringLength)
+{
+    return maximumStringLength > 0 ? s.substring (0, maximumStringLength) : s;
+}
+
+juce::String OJDParameters::Switches::HpLp::stringFromBoolConversion (bool isHp, int maximumStringLength)
 {
     return stringWithMaxLength (isHp ? "HP" : "LP", maximumStringLength) ;
 }
 
-juce::String OJDParameters::Bypass::stringFromBoolConversion (bool isBypassed, int maximumStringLength)
+juce::String OJDParameters::Switches::Bypass::stringFromBoolConversion (bool isBypassed, int maximumStringLength)
 {
     return stringWithMaxLength (isBypassed ? "Off" : "On", maximumStringLength);
 }
 
-bool OJDParameters::HpLp::boolFromStringConversion   (const juce::String& text) { return !text.compareIgnoreCase ("hp"); }
-bool OJDParameters::Bypass::boolFromStringConversion (const juce::String& text) { return !text.compareIgnoreCase ("On"); }
+bool OJDParameters::Switches::HpLp::boolFromStringConversion (const juce::String& text)
+{
+    return !text.compareIgnoreCase ("hp");
+}
+
+bool OJDParameters::Switches::Bypass::boolFromStringConversion (const juce::String& text)
+{
+    return !text.compareIgnoreCase ("on");
+}
 
 //================ Raw parameter to meaningful value conversion ========================================================
-ToneStack::Mode OJDParameters::HpLp::getModeFromRaw (const std::atomic<float>& rawValue) { return rawValue > 0.5 ? ToneStack::hp : ToneStack::lp; }
-bool            OJDParameters::Bypass::isActive     (const std::atomic<float>& rawValue) { return rawValue > 0.5; }
+ToneStack::Mode OJDParameters::Switches::HpLp::getModeFromRaw (const std::atomic<float>& rawValue)
+{
+    return rawValue > 0.5 ? ToneStack::hp : ToneStack::lp;
+}
+
+bool OJDParameters::Switches::Bypass::isActive (const std::atomic<float>& rawValue)
+{
+    return rawValue > 0.5;
+}
 
 
 //================ Parameter layout creation ===========================================================================
 juce::AudioProcessorValueTreeState::ParameterLayout OJDParameters::createParameterLayout()
 {
-    return juce::AudioProcessorValueTreeState::ParameterLayout ({
-            std::make_unique<juce::AudioParameterFloat> (Drive::id,  "Drive",   Drive::range,  5.5f),
-            std::make_unique<juce::AudioParameterFloat> (Tone::id,   "Tone",    Tone::range,   7.75f),
-            std::make_unique<juce::AudioParameterFloat> (Volume::id, "Volume",  Volume::range, -40.0f),
-            std::make_unique<juce::AudioParameterBool>  (HpLp::id,   "HP / LP", false, "", HpLp::stringFromBoolConversion,   HpLp::boolFromStringConversion),
-            std::make_unique<juce::AudioParameterBool>  (Bypass::id, "Bypass",  false, "", Bypass::stringFromBoolConversion, Bypass::boolFromStringConversion)
+#define MAKE_ROTARY_PARAMETER(Name)                                                          \
+    std::make_unique<juce::AudioParameterFloat> (Sliders::Name::id, #Name, Sliders::displayRange, 5.0f)
+
+#define MAKE_SWITCH_PARAMETER(Name, displayName)                                             \
+    std::make_unique<juce::AudioParameterBool>  (Switches::Name::id, displayName, false, "", \
+                                                 Switches::Name::stringFromBoolConversion,   \
+                                                 Switches::Name::boolFromStringConversion)
+
+    return juce::AudioProcessorValueTreeState::ParameterLayout (
+    {
+        MAKE_ROTARY_PARAMETER (Drive),
+        MAKE_ROTARY_PARAMETER (Tone),
+        MAKE_ROTARY_PARAMETER (Volume),
+
+        MAKE_SWITCH_PARAMETER (HpLp,   "HP / LP"),
+        MAKE_SWITCH_PARAMETER (Bypass, "Bypass")
     });
 }
 
 juce::StringArray OJDParameters::getPresetMangagerParameters()
 {
-    return { Drive::id, Tone::id, Volume::id, HpLp::id };
+    return { Sliders::Drive::id, Sliders::Tone::id, Sliders::Volume::id, Switches::HpLp::id };
 }

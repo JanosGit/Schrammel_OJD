@@ -9,12 +9,12 @@ OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
     drawables        (proc.drawables),
     layouts          (*this),
     ojdLookAndFeel   (drawables),
-    driveSlider      (proc.parameters, OJDParameters::Drive::id),
-    toneSlider       (proc.parameters, OJDParameters::Tone::id),
-    volumeSlider     (proc.parameters, OJDParameters::Volume::id),
-    bypassSwitch     (proc.parameters, OJDParameters::Bypass::id, "Bypass", juce::DrawableButton::ImageFitted),
-    bypassLED        (proc.parameters, OJDParameters::Bypass::id, "LED",    juce::DrawableButton::ImageFitted),
-    hpLpSwitch       (proc.parameters, OJDParameters::HpLp::id,   "HpLp",   juce::DrawableButton::ImageFitted)
+    driveSlider      (proc.parameters, OJDParameters::Sliders::Drive::id),
+    toneSlider       (proc.parameters, OJDParameters::Sliders::Tone::id),
+    volumeSlider     (proc.parameters, OJDParameters::Sliders::Volume::id),
+    bypassSwitch     (proc.parameters, OJDParameters::Switches::Bypass::id, "Bypass", juce::DrawableButton::ImageFitted),
+    bypassLED        (proc.parameters, OJDParameters::Switches::Bypass::id, "LED",    juce::DrawableButton::ImageFitted),
+    hpLpSwitch       (proc.parameters, OJDParameters::Switches::HpLp::id,   "HpLp",   juce::DrawableButton::ImageFitted)
 {
     setLookAndFeel (&ojdLookAndFeel);
 

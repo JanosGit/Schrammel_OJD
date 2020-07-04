@@ -37,11 +37,6 @@ private:
 
     void addPresetManager (OJDAudioProcessor& processorToControl);
 
-public:
-
-
-private:
-
     struct SubcomponentLayouts
     {
         SubcomponentLayouts (const OJDAudioProcessorEditor& e) : editor (e) {}
