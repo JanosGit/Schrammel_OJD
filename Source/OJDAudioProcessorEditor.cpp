@@ -104,6 +104,7 @@ void OJDAudioProcessorEditor::addSliderAndSetStyle (juce::Slider& slider)
     slider.setSliderStyle  (juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     slider.setTextBoxStyle (juce::Slider::NoTextBox, true, 0, 0);
     slider.setColour       (juce::Slider::ColourIds::textBoxTextColourId, juce::Colours::black);
+    slider.setPopupDisplayEnabled (true, true, this);
 
     addAndMakeVisible (slider);
 }
