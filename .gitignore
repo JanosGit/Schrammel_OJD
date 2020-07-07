@@ -12,3 +12,6 @@ Deployment/MacOS/OJD/
 
 
 Deployment/Windows/Output/
+
+.idea/
+cmake-build*/
