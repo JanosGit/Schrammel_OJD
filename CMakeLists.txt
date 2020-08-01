@@ -3,6 +3,11 @@ cmake_minimum_required (VERSION 3.16)
 
 project (SCHRAMMEL_OJD VERSION 0.9.5)
 
+# If we are using MSVC we want static runtime linkage
+if (MSVC)
+    set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 # Adding JUCE
 add_subdirectory (Ext/JUCE)
 
