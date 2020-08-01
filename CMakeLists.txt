@@ -1,5 +1,5 @@
 
-cmake_minimum_required (VERSION 3.15)
+cmake_minimum_required (VERSION 3.16)
 
 project (SCHRAMMEL_OJD VERSION 0.9.5)
 
@@ -64,3 +64,7 @@ target_link_libraries (OJD PRIVATE
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
         juce::juce_recommended_config_flags)
+
+if (CREATE_INSTALLER)
+    add_subdirectory (Deployment)
+endif()

@@ -5,6 +5,8 @@ DAWTest/
 
 Builds/
 
+CMakeBuild/
+
 *.dmg
 
 Deployment/*/Bin/
@@ -14,4 +16,13 @@ Deployment/MacOS/OJD/
 Deployment/Windows/Output/
 
 .idea/
-cmake-build*/
+
+Makefile
+
+progress.marks
+
+CMakeDirectoryInformation.cmake
+
+cmake_install.cmake
+
+*.dir
