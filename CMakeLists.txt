@@ -3,13 +3,24 @@ cmake_minimum_required (VERSION 3.16)
 
 project (SCHRAMMEL_OJD VERSION 0.9.5)
 
+# If we are using MSVC we want static runtime linkage
+if (MSVC)
+    set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 # Adding JUCE
 add_subdirectory (Ext/JUCE)
 
 # Adding own modules
 juce_add_module (Ext/JBPluginBase/jb_plugin_base)
 
-set (FormatsToBuild AU VST3)
+# VST3 should be built on all platforms
+set (FormatsToBuild VST3)
+
+# On Mac, a AU version will be built too
+if (APPLE)
+    list (APPEND FormatsToBuild AU)
+endif()
 
 # If a path to the AAX SDK is passed to CMake, an AAX version will be built too
 if (AAX_SDK_PATH)
@@ -17,6 +28,7 @@ if (AAX_SDK_PATH)
     list (APPEND FormatsToBuild AAX)
 endif()
 
+# Add the plugin target itself
 juce_add_plugin (OJD
         COMPANY_NAME Schrammel                      # Specify the name of the plugin's author
         IS_SYNTH FALSE                              # Is this a synth or an effect?
@@ -29,15 +41,19 @@ juce_add_plugin (OJD
         FORMATS ${FormatsToBuild}                   # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
         PRODUCT_NAME "OJD")                         # The name of the final executable, which can differ from the target name
 
+# We want to compile the plugin with C++14
 target_compile_features (OJD PRIVATE cxx_std_14)
 
+# Using JUCE header as the original project was developed with Projucer - might be removed in future
 juce_generate_juce_header (OJD)
 
+# Adding all source files to the plugin target
 target_sources (OJD PRIVATE
         Source/OJDAudioProcessorEditor.cpp
         Source/OJDProcessor.cpp
         Source/OJDParameters.cpp)
 
+# The subdirectory contains its own CMakeLists that creates a BinaryData target containing all SVGs
 add_subdirectory (BinaryResources/SVGs)
 
 target_compile_definitions (OJD
@@ -65,6 +81,7 @@ target_link_libraries (OJD PRIVATE
         juce::juce_recommended_warning_flags
         juce::juce_recommended_config_flags)
 
+# The Deployment subdirectory contains its own CMakeLists that creates a CPack based installer
 if (CREATE_INSTALLER)
     add_subdirectory (Deployment)
 endif()
