@@ -10,6 +10,8 @@ Just add it to your FX chain before your digital amp simulation of choice and ge
 
 ## How to get the OJD? 🤷‍♀️🤷‍♂️
 
+Beta version 0.9.5 out now! Go [here](https://github.com/JanosGit/Schrammel_OJD/releases/tag/0.9.5) and download it for free. Feeback welcome! 
+
 The OJD is available for Mac OS and Windows as VST3, AAX and AU (Mac OS only) plugin. You'll find the installer for the latest version here:
 
 TBA
@@ -70,4 +72,4 @@ One last note: There are a lot of variations on the schematics and pedal I used 
 
 ## How to build the plugin from source
 
-TBA
+The project is based on a CMake build script. If you are familiar with CMake, building the plugin should be as much as two commands on your command line or one click in a CMake capable IDE like e.g. CLion. Detailed information TBA
