@@ -30,16 +30,20 @@ endif()
 
 # Add the plugin target itself
 juce_add_plugin (OJD
-        COMPANY_NAME Schrammel                      # Specify the name of the plugin's author
-        IS_SYNTH FALSE                              # Is this a synth or an effect?
-        NEEDS_MIDI_INPUT FALSE                      # Does the plugin need midi input?
-        NEEDS_MIDI_OUTPUT FALSE                     # Does the plugin need midi output?
-        IS_MIDI_EFFECT FALSE                        # Is this plugin a MIDI effect?
+        COMPANY_NAME Schrammelhor
+        PRODUCT_NAME "OJD"
+        IS_SYNTH FALSE
+        NEEDS_MIDI_INPUT FALSE
+        NEEDS_MIDI_OUTPUT FALSE
+        IS_MIDI_EFFECT FALSE
         COPY_PLUGIN_AFTER_BUILD TRUE                # Should the plugin be installed to a default location after building?
-        PLUGIN_MANUFACTURER_CODE Juce               # A four-character manufacturer id with at least one upper-case character
-        PLUGIN_CODE Dem0                            # A unique four-character plugin id with at least one upper-case character
-        FORMATS ${FormatsToBuild}                   # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
-        PRODUCT_NAME "OJD")                         # The name of the final executable, which can differ from the target name
+        FORMATS ${FormatsToBuild}                   # The formats to build. Depending on the platform and if an AAX SDK is passed in
+        PLUGIN_MANUFACTURER_CODE Srml               # A four-character manufacturer id with at least one upper-case character
+        PLUGIN_CODE SOJD                            # A unique four-character plugin id with at least one upper-case character
+        AAX_IDENTIFIER de.schrammel.ojd
+        VST3_CATEGORIES Fx Distortion
+        AU_MAIN_TYPE kAudioUnitType_Effect
+        AAX_CATEGORY AAX_ePlugInCategory_Harmonic)
 
 # We want to compile the plugin with C++14
 target_compile_features (OJD PRIVATE cxx_std_14)
