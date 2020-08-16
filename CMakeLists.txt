@@ -30,7 +30,7 @@ endif()
 
 # Add the plugin target itself
 juce_add_plugin (OJD
-        COMPANY_NAME Schrammelhor
+        COMPANY_NAME Schrammel
         PRODUCT_NAME "OJD"
         IS_SYNTH FALSE
         NEEDS_MIDI_INPUT FALSE
