@@ -54,6 +54,8 @@ void OJDAudioProcessorEditor::paint (juce::Graphics& g)
 
 void OJDAudioProcessorEditor::resized()
 {
+    checkComponentBounds (this);
+
     presetManagerComponent->setBounds (getLocalBounds().removeFromTop (presetManagerComponentHeight));
 
     layouts.recalculate();
