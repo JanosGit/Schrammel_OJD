@@ -5,7 +5,7 @@
 
 //==============================================================================
 OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
- :  juce::AudioProcessorEditor (&proc),
+ :  jb::PluginEditorBase<contentMinWidth, overallMinHeight> (proc, IsResizable::Yes, UseConstrainer::Yes),
     drawables        (proc.drawables),
     layouts          (*this),
     ojdLookAndFeel   (drawables),
@@ -28,18 +28,7 @@ OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
 
     addPresetManager (proc);
 
-    setResizable (true, true);
-    setConstrainer (this);
-
-    // Make the UI size restorable
-    auto uiStateTree = proc.parameters.state.getChildWithName (uiStateTreeType);
-
-    lastUIWidth .referTo (uiStateTree.getPropertyAsValue (uiStateTreeWidth,  nullptr));
-    lastUIHeight.referTo (uiStateTree.getPropertyAsValue (uiStateTreeHeight, nullptr));
-    lastUIWidth. addListener (this);
-    lastUIHeight.addListener (this);
-
-    setSize (lastUIWidth.getValue(), lastUIHeight.getValue());
+    restoreSizeFromState();
 }
 
 OJDAudioProcessorEditor::~OJDAudioProcessorEditor()
@@ -52,10 +41,8 @@ void OJDAudioProcessorEditor::paint (juce::Graphics& g)
     drawables.editorBackground->drawAt (g, 0, presetManagerComponentHeight, 1.0f);
 }
 
-void OJDAudioProcessorEditor::resized()
+void OJDAudioProcessorEditor::constrainedResized()
 {
-    checkComponentBounds (this);
-
     presetManagerComponent->setBounds (getLocalBounds().removeFromTop (presetManagerComponentHeight));
 
     layouts.recalculate();
@@ -76,32 +63,17 @@ void OJDAudioProcessorEditor::resized()
     volumeSlider.setCentrePosition (layouts.volumeCentre);
     driveSlider .setCentrePosition (layouts.driveCentre);
     toneSlider  .setCentrePosition (layouts.toneCentre);
-
-    // Store size
-    lastUIHeight = getHeight();
-    lastUIWidth  = getWidth();
-}
-
-const juce::ValueTree OJDAudioProcessorEditor::createUIStateSubtree()
-{
-    return juce::ValueTree (uiStateTreeType,
-                           {
-                               { uiStateTreeWidth,  contentMinWitdh },
-                               { uiStateTreeHeight, contentMinHeight + presetManagerComponentHeight}
-                           });
 }
 
 void OJDAudioProcessorEditor::checkBounds (juce::Rectangle<int>& bounds, const juce::Rectangle<int>&, const juce::Rectangle<int>&, bool, bool, bool, bool)
 {
     auto contentHeight = juce::jmax (contentMinHeight, bounds.getHeight() - presetManagerComponentHeight);
-    auto contentWidth  = juce::jmax (contentMinWitdh, juce::roundToInt (contentHeight * contentAspectRatio));
+    auto contentWidth  = juce::jmax (contentMinWidth, juce::roundToInt (contentHeight * contentAspectRatio));
 
     bounds.setSize (contentWidth, contentHeight + presetManagerComponentHeight);
 }
 
-void OJDAudioProcessorEditor::valueChanged (juce::Value&) { setSize (lastUIWidth.getValue(), lastUIHeight.getValue()); }
-
-void OJDAudioProcessorEditor::addSliderAndSetStyle (juce::Slider& slider)
+void OJDAudioProcessorEditor::addSliderAndSetStyle (AttachedSlider& slider)
 {
     slider.setSliderStyle  (juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     slider.setTextBoxStyle (juce::Slider::NoTextBox, true, 0, 0);
@@ -109,6 +81,7 @@ void OJDAudioProcessorEditor::addSliderAndSetStyle (juce::Slider& slider)
     slider.setPopupDisplayEnabled (true, true, this);
 
     addAndMakeVisible (slider);
+    registerHighlightableWidget (slider);
 }
 
 void OJDAudioProcessorEditor::addBypassElementsAndSetStyle()
@@ -125,6 +98,8 @@ void OJDAudioProcessorEditor::addBypassElementsAndSetStyle()
 
     addAndMakeVisible (bypassSwitch);
     addAndMakeVisible (bypassLED);
+
+    registerHighlightableWidget (bypassSwitch);
 }
 
 void OJDAudioProcessorEditor::addHpLpSwitchAndSetStyle()
@@ -135,6 +110,8 @@ void OJDAudioProcessorEditor::addHpLpSwitchAndSetStyle()
     hpLpSwitch.setClickingTogglesState (true);
 
     addAndMakeVisible (hpLpSwitch);
+
+    registerHighlightableWidget (hpLpSwitch);
 }
 
 void OJDAudioProcessorEditor::addPresetManager (OJDAudioProcessor& processorToControl)
@@ -181,7 +158,3 @@ juce::AffineTransform OJDAudioProcessorEditor::SubcomponentLayouts::getBackgroun
 {
     return juce::AffineTransform::scale (editor.getWidth() * widthToBackgroundScaleFactor);
 }
-
-const juce::Identifier OJDAudioProcessorEditor::uiStateTreeType   ("uiState");
-const juce::Identifier OJDAudioProcessorEditor::uiStateTreeWidth  ("width");
-const juce::Identifier OJDAudioProcessorEditor::uiStateTreeHeight ("height");

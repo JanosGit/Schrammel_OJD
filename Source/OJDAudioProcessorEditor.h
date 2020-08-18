@@ -5,10 +5,19 @@
 #include "OJDProcessor.h"
 #include "OJDLookAndFeel.h"
 
+/** Some constants derived from the GUI design */
+struct OJDEditorConstants
+{
+    static constexpr int   presetManagerComponentHeight = 20;
+    static constexpr int   contentMinHeight             = 568;
+    static constexpr int   overallMinHeight             = presetManagerComponentHeight + contentMinHeight;
+    static constexpr int   contentMinWidth              = 310;
+    static constexpr float contentAspectRatio           = 0.545774647887324f;
+    static constexpr float widthToBackgroundScaleFactor = 6.451612903225806e-4f;
+};
 
-class OJDAudioProcessorEditor  : public juce::AudioProcessorEditor,
-                                 public juce::ComponentBoundsConstrainer,
-                                 private juce::Value::Listener
+class OJDAudioProcessorEditor  : public jb::PluginEditorBase<OJDEditorConstants::contentMinWidth, OJDEditorConstants::overallMinHeight>,
+                                 private OJDEditorConstants
 {
 public:
     OJDAudioProcessorEditor (OJDAudioProcessor&);
@@ -16,18 +25,20 @@ public:
 
     //==============================================================================
     void paint (juce::Graphics&) override;
-    void resized() override;
-
-    /** To be called by the processor to add a subtree to the plugin state that contains GUI-related information */
-    static const juce::ValueTree createUIStateSubtree();
-
-private:
+    void constrainedResized() override;
     void checkBounds (juce::Rectangle<int>& bounds, const juce::Rectangle<int>&, const juce::Rectangle<int>&, bool, bool, bool, bool) override;
 
-    void valueChanged (juce::Value&) override;
+private:
+
+    /** Determines how AAX automation highlight boxes are drawn */
+    using HighlightLayout = jb::HighlightableWidget::BoxLayout;
+
+    using AttachedSlider       = jb::AttachedWidget<juce::Slider,         HighlightLayout::SquareCenteredAboveParent>;
+    using AttachedBypassButton = jb::AttachedWidget<juce::DrawableButton, HighlightLayout::SquareCenteredAboveParent>;
+    using AttachedHpLpButton   = jb::AttachedWidget<juce::DrawableButton, HighlightLayout::FollowParentBounds>;
 
     /** Adds a slider to the component, makes it visible and performs some general styling */
-    void addSliderAndSetStyle (juce::Slider& slider);
+    void addSliderAndSetStyle (AttachedSlider& slider);
 
     /** Adds the bypass switch to the component and sets its style */
     void addBypassElementsAndSetStyle();
@@ -77,21 +88,11 @@ private:
 
     OJDLookAndFeel ojdLookAndFeel;
 
-    jb::AttachedWidget<juce::Slider> driveSlider, toneSlider, volumeSlider;
-    jb::AttachedWidget<juce::DrawableButton> bypassSwitch, bypassLED, hpLpSwitch;
+    AttachedSlider driveSlider, toneSlider, volumeSlider;
+    AttachedBypassButton bypassSwitch, bypassLED;
+    AttachedHpLpButton hpLpSwitch;
 
     std::unique_ptr<jb::PresetManagerComponent> presetManagerComponent;
-
-    static const juce::Identifier uiStateTreeType, uiStateTreeWidth, uiStateTreeHeight;
-
-    juce::Value lastUIWidth, lastUIHeight;
-
-    // Some constants derived from the GUI design
-    static constexpr int   presetManagerComponentHeight = 20;
-    static constexpr int   contentMinHeight             = 568;
-    static constexpr int   contentMinWitdh              = 310;
-    static constexpr float contentAspectRatio           = 0.545774647887324f;
-    static constexpr float widthToBackgroundScaleFactor = 6.451612903225806e-4f;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OJDAudioProcessorEditor)
 };
