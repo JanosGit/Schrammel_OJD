@@ -11,6 +11,11 @@ endif()
 # Adding JUCE
 add_subdirectory (Ext/JUCE)
 
+# Adding JSON
+set (JSON_BuildTests OFF CACHE INTERNAL "")
+set (JSON_Install OFF CACHE INTERNAL "")
+add_subdirectory (Ext/JBPluginBase/Ext/json)
+
 # Adding own modules
 juce_add_module (Ext/JBPluginBase/jb_plugin_base)
 
@@ -67,7 +72,8 @@ target_compile_definitions (OJD
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_STRICT_REFCOUNTEDPTR=1
-        JUCE_VST3_CAN_REPLACE_VST2=0)
+        JUCE_VST3_CAN_REPLACE_VST2=0
+        JB_INCLUDE_JSON=1)
 
 target_link_libraries (OJD PRIVATE
         # JUCE Modules
@@ -76,6 +82,9 @@ target_link_libraries (OJD PRIVATE
 
         # Custom modules
         jb_plugin_base
+
+        # JSON dependncy in plugin base
+        nlohmann_json::nlohmann_json
 
         # Binary Data
         EmbeddedSVGs
