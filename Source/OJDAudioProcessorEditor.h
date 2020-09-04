@@ -48,6 +48,8 @@ private:
 
     void addPresetManager (OJDAudioProcessor& processorToControl);
 
+    void checkMessageOfTheDay (OJDAudioProcessor& processor);
+
     struct SubcomponentLayouts
     {
         SubcomponentLayouts (const OJDAudioProcessorEditor& e) : editor (e) {}

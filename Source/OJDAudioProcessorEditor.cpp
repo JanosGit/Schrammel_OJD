@@ -29,6 +29,8 @@ OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
     addPresetManager (proc);
 
     restoreSizeFromState();
+
+    checkMessageOfTheDay (proc);
 }
 
 OJDAudioProcessorEditor::~OJDAudioProcessorEditor()
@@ -118,6 +120,30 @@ void OJDAudioProcessorEditor::addPresetManager (OJDAudioProcessor& processorToCo
 {
     presetManagerComponent = processorToControl.stateAndPresetManager.createPresetManagerComponent (*this, true);
     addAndMakeVisible (*presetManagerComponent);
+}
+
+void OJDAudioProcessorEditor::checkMessageOfTheDay (OJDAudioProcessor& processor)
+{
+    juce::Timer::callAfterDelay(1000, [&]()
+    {
+        if (auto messages = processor.getMessageOfTheDay (500))
+        {
+            auto updateMessage  = std::move (messages->updateMessage);
+            auto generalMessage = std::move (messages->generalMessage);
+
+            // Todo: Use something better than these modal dialogues
+            if (updateMessage != nullptr)
+                juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::InfoIcon, "OJD Update Available", updateMessage->text);
+
+            if (generalMessage != nullptr)
+            {
+                juce::AlertWindow::showMessageBoxAsync (juce::AlertWindow::InfoIcon, "Schrammel Info", generalMessage->text);
+
+                auto& settingsManager = *jb::SettingsManager::getInstance();
+                settingsManager.writeSetting ("LastMOTDVersionDisplayed", generalMessage->version);
+            }
+        }
+    });
 }
 
 void OJDAudioProcessorEditor::SubcomponentLayouts::recalculate()
