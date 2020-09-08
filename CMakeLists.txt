@@ -1,12 +1,18 @@
 
 cmake_minimum_required (VERSION 3.16)
 
-project (SCHRAMMEL_OJD VERSION 0.9.5)
-
 # If we are using MSVC we want static runtime linkage
 if (MSVC)
     set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
+
+# If we are compiling for Mac OS we want to target OS versions down to 10.9
+if (APPLE)
+    set (CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE INTERNAL "")
+    project (SCHRAMMEL_OJD VERSION 0.9.5)
+endif()
+
+project (SCHRAMMEL_OJD VERSION 0.9.5)
 
 # Adding JUCE
 add_subdirectory (Ext/JUCE)
