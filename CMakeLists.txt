@@ -9,7 +9,6 @@ endif()
 # If we are compiling for Mac OS we want to target OS versions down to 10.9
 if (APPLE)
     set (CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE INTERNAL "")
-    project (SCHRAMMEL_OJD VERSION 0.9.5)
 endif()
 
 project (SCHRAMMEL_OJD VERSION 0.9.5)
