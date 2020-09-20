@@ -23,6 +23,8 @@ add_subdirectory (Ext/JBPluginBase/Ext/json)
 
 # Adding own modules
 juce_add_module (Ext/JBPluginBase/jb_plugin_base)
+juce_add_module (Ext/Resvg4JUCE/jb_resvg)
+LINK_DIRECTORIES (Ext/Resvg4JUCE/jb_resvg/libs/MacOSX/x86_64)
 
 # VST3 should be built on all platforms
 set (FormatsToBuild VST3)
@@ -87,6 +89,7 @@ target_link_libraries (OJD PRIVATE
 
         # Custom modules
         jb_plugin_base
+        jb_resvg
 
         # JSON dependncy in plugin base
         nlohmann_json::nlohmann_json

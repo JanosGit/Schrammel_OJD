@@ -6,7 +6,6 @@
 #include "OJDParameters.h"
 #include "ToneStack.h"
 #include "Waveshaper.h"
-#include "Drawables.h"
 
 class OJDAudioProcessor
   : public jb::PluginAudioProcessorBase<OJDParameters>,
@@ -33,8 +32,6 @@ public:
      * a nullpointer if either the server didn't respond (yet) or the message has already been displayed
      */
     std::unique_ptr<jb::MessageOfTheDay::InfoAndUpdate> getMessageOfTheDay (int timeoutMilliseconds);
-
-    Drawables drawables;
 
     /** This processor will only process one channel */
     static const int numChannels = 1;

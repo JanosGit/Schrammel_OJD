@@ -24,7 +24,7 @@ public:
     ~OJDAudioProcessorEditor() override;
 
     //==============================================================================
-    void paint (juce::Graphics&) override;
+    void paint (juce::Graphics&) override {}
     void constrainedResized() override;
     void checkBounds (juce::Rectangle<int>& bounds, const juce::Rectangle<int>&, const juce::Rectangle<int>&, bool, bool, bool, bool) override;
 
@@ -33,9 +33,9 @@ private:
     /** Determines how AAX automation highlight boxes are drawn */
     using HighlightLayout = jb::HighlightableWidget::BoxLayout;
 
-    using AttachedSlider       = jb::AttachedWidget<juce::Slider,         HighlightLayout::SquareCenteredAboveParent>;
-    using AttachedBypassButton = jb::AttachedWidget<juce::DrawableButton, HighlightLayout::SquareCenteredAboveParent>;
-    using AttachedHpLpButton   = jb::AttachedWidget<juce::DrawableButton, HighlightLayout::FollowParentBounds>;
+    using AttachedSlider       = jb::AttachedWidget<juce::Slider,  HighlightLayout::SquareCenteredAboveParent>;
+    using AttachedBypassButton = jb::AttachedWidget<jb::SVGButton, HighlightLayout::SquareCenteredAboveParent>;
+    using AttachedHpLpButton   = jb::AttachedWidget<jb::SVGButton, HighlightLayout::FollowParentBounds>;
 
     /** Adds a slider to the component, makes it visible and performs some general styling */
     void addSliderAndSetStyle (AttachedSlider& slider);
@@ -55,8 +55,6 @@ private:
         SubcomponentLayouts (const OJDAudioProcessorEditor& e) : editor (e) {}
 
         void recalculate();
-
-        juce::AffineTransform getBackgroundTransform();
 
         const OJDAudioProcessorEditor& editor;
 
@@ -85,8 +83,11 @@ private:
         int volumeHeight;
     };
 
-    Drawables& drawables;
     SubcomponentLayouts layouts;
+
+    jb::SVGComponent background { BinaryData::background_svg, BinaryData::background_svgSize };
+
+    const std::unique_ptr<juce::Drawable> knobDrawable;
 
     OJDLookAndFeel ojdLookAndFeel;
 

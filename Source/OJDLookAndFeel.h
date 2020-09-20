@@ -15,7 +15,7 @@
 class OJDLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
-    OJDLookAndFeel (const Drawables& drawables) : knob (drawables.knob->createCopy())
+    OJDLookAndFeel (const juce::Drawable& knobDrawable) : knob (knobDrawable.createCopy())
     {
         setColour (juce::TextButton::ColourIds::buttonColourId,    juce::Colours::black);
         setColour (juce::PopupMenu::ColourIds::backgroundColourId, juce::Colours::black);

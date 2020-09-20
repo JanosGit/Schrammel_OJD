@@ -6,17 +6,19 @@
 //==============================================================================
 OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
  :  jb::PluginEditorBase<contentMinWidth, overallMinHeight> (proc, IsResizable::Yes, UseConstrainer::Yes),
-    drawables        (proc.drawables),
     layouts          (*this),
-    ojdLookAndFeel   (drawables),
+    knobDrawable     (juce::Drawable::createFromImageData (BinaryData::knob_svg, BinaryData::knob_svgSize)),
+    ojdLookAndFeel   (*knobDrawable),
     driveSlider      (proc.parameters, OJDParameters::Sliders::Drive::id),
     toneSlider       (proc.parameters, OJDParameters::Sliders::Tone::id),
     volumeSlider     (proc.parameters, OJDParameters::Sliders::Volume::id),
-    bypassSwitch     (proc.parameters, OJDParameters::Switches::Bypass::id, "Bypass", juce::DrawableButton::ImageFitted),
-    bypassLED        (proc.parameters, OJDParameters::Switches::Bypass::id, "LED",    juce::DrawableButton::ImageFitted),
-    hpLpSwitch       (proc.parameters, OJDParameters::Switches::HpLp::id,   "HpLp",   juce::DrawableButton::ImageFitted)
+    bypassSwitch     (proc.parameters, OJDParameters::Switches::Bypass::id, BinaryData::footSwitch_svg,    BinaryData::footSwitch_svgSize,    BinaryData::footSwitch_svg,    BinaryData::footSwitch_svgSize, "Bypass"),
+    bypassLED        (proc.parameters, OJDParameters::Switches::Bypass::id, BinaryData::ledOff_svg,        BinaryData::ledOff_svgSize,        BinaryData::ledOn_svg,         BinaryData::ledOn_svgSize, "LED"),
+    hpLpSwitch       (proc.parameters, OJDParameters::Switches::HpLp::id,   BinaryData::slideSwitchLP_svg, BinaryData::slideSwitchLP_svgSize, BinaryData::slideSwitchHP_svg, BinaryData::slideSwitchHP_svgSize,   "HpLp")
 {
     setLookAndFeel (&ojdLookAndFeel);
+
+    addAndMakeVisible (background);
 
     addSliderAndSetStyle (volumeSlider);
     addSliderAndSetStyle (driveSlider);
@@ -38,17 +40,11 @@ OJDAudioProcessorEditor::~OJDAudioProcessorEditor()
     setLookAndFeel (nullptr);
 }
 
-void OJDAudioProcessorEditor::paint (juce::Graphics& g)
-{
-    drawables.editorBackground->drawAt (g, 0, presetManagerComponentHeight, 1.0f);
-}
-
 void OJDAudioProcessorEditor::constrainedResized()
 {
     presetManagerComponent->setBounds (getLocalBounds().removeFromTop (presetManagerComponentHeight));
 
     layouts.recalculate();
-    drawables.editorBackground->setTransform (layouts.getBackgroundTransform());
 
     // set sizes
     hpLpSwitch  .setSize (layouts.hpLpWidth,   layouts.hpLpHeight);
@@ -65,6 +61,8 @@ void OJDAudioProcessorEditor::constrainedResized()
     volumeSlider.setCentrePosition (layouts.volumeCentre);
     driveSlider .setCentrePosition (layouts.driveCentre);
     toneSlider  .setCentrePosition (layouts.toneCentre);
+
+    background.setBounds (getLocalBounds().withTrimmedTop (presetManagerComponentHeight));
 }
 
 void OJDAudioProcessorEditor::checkBounds (juce::Rectangle<int>& bounds, const juce::Rectangle<int>&, const juce::Rectangle<int>&, bool, bool, bool, bool)
@@ -88,14 +86,8 @@ void OJDAudioProcessorEditor::addSliderAndSetStyle (AttachedSlider& slider)
 
 void OJDAudioProcessorEditor::addBypassElementsAndSetStyle()
 {
-    bypassSwitch.setImages (drawables.footSwitch.get());
-    bypassSwitch.setColour (juce::DrawableButton::backgroundColourId,   juce::Colours::transparentBlack);
-    bypassSwitch.setColour (juce::DrawableButton::backgroundOnColourId, juce::Colours::transparentBlack);
     bypassSwitch.setClickingTogglesState (true);
 
-    bypassLED.setImages (drawables.ledOn.get(), nullptr, nullptr, nullptr, drawables.ledOff.get());
-    bypassLED.setColour (juce::DrawableButton::backgroundColourId,   juce::Colours::transparentBlack);
-    bypassLED.setColour (juce::DrawableButton::backgroundOnColourId, juce::Colours::transparentBlack);
     bypassLED.setClickingTogglesState (false);
 
     addAndMakeVisible (bypassSwitch);
@@ -106,9 +98,6 @@ void OJDAudioProcessorEditor::addBypassElementsAndSetStyle()
 
 void OJDAudioProcessorEditor::addHpLpSwitchAndSetStyle()
 {
-    hpLpSwitch.setImages (drawables.slideSwitchLP.get(), nullptr, nullptr, nullptr, drawables.slideSwitchHP.get());
-    hpLpSwitch.setColour (juce::DrawableButton::backgroundColourId,   juce::Colours::transparentBlack);
-    hpLpSwitch.setColour (juce::DrawableButton::backgroundOnColourId, juce::Colours::transparentBlack);
     hpLpSwitch.setClickingTogglesState (true);
 
     addAndMakeVisible (hpLpSwitch);
@@ -122,11 +111,11 @@ void OJDAudioProcessorEditor::addPresetManager (OJDAudioProcessor& processorToCo
     addAndMakeVisible (*presetManagerComponent);
 }
 
-void OJDAudioProcessorEditor::checkMessageOfTheDay (OJDAudioProcessor& processor)
+void OJDAudioProcessorEditor::checkMessageOfTheDay (OJDAudioProcessor& proc)
 {
     juce::Timer::callAfterDelay(1000, [&]()
     {
-        if (auto messages = processor.getMessageOfTheDay (500))
+        if (auto messages = proc.getMessageOfTheDay (500))
         {
             auto updateMessage  = std::move (messages->updateMessage);
             auto generalMessage = std::move (messages->generalMessage);
@@ -178,9 +167,4 @@ void OJDAudioProcessorEditor::SubcomponentLayouts::recalculate()
     volumeHeight = bounds.proportionOfHeight (0.2f);
     driveHeight  = bounds.proportionOfHeight (0.2f);
     toneHeight   = bounds.proportionOfHeight (0.2f);
-}
-
-juce::AffineTransform OJDAudioProcessorEditor::SubcomponentLayouts::getBackgroundTransform()
-{
-    return juce::AffineTransform::scale (editor.getWidth() * widthToBackgroundScaleFactor);
 }
