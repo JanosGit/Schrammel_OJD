@@ -5,6 +5,8 @@
 #include "OJDProcessor.h"
 #include "OJDLookAndFeel.h"
 
+class OJDAudioProcessorEditor;
+
 /** Some constants derived from the GUI design */
 struct OJDEditorConstants
 {
@@ -13,20 +15,15 @@ struct OJDEditorConstants
     static constexpr int   overallMinHeight             = presetManagerComponentHeight + contentMinHeight;
     static constexpr int   contentMinWidth              = 310;
     static constexpr float contentAspectRatio           = 0.545774647887324f;
-    static constexpr float widthToBackgroundScaleFactor = 6.451612903225806e-4f;
 };
 
-class OJDAudioProcessorEditor  : public jb::PluginEditorBase<OJDEditorConstants::contentMinWidth, OJDEditorConstants::overallMinHeight>,
-                                 private OJDEditorConstants
+/** The pedal itself is held in a separate component to be able to move it around on the background e.g. for messages */
+class OJDPedalComponent : public juce::Component
 {
 public:
-    OJDAudioProcessorEditor (OJDAudioProcessor&);
-    ~OJDAudioProcessorEditor() override;
+    OJDPedalComponent (OJDAudioProcessor&, OJDAudioProcessorEditor&);
 
-    //==============================================================================
-    void paint (juce::Graphics&) override {}
-    void constrainedResized() override;
-    void checkBounds (juce::Rectangle<int>& bounds, const juce::Rectangle<int>&, const juce::Rectangle<int>&, bool, bool, bool, bool) override;
+    void resized() override;
 
 private:
 
@@ -46,17 +43,10 @@ private:
     /** Adds the HP/LP switch to the component and sets its style */
     void addHpLpSwitchAndSetStyle();
 
-    void addPresetManager (OJDAudioProcessor& processorToControl);
-
-    void checkMessageOfTheDay (OJDAudioProcessor& processor);
 
     struct SubcomponentLayouts
     {
-        SubcomponentLayouts (const OJDAudioProcessorEditor& e) : editor (e) {}
-
-        void recalculate();
-
-        const OJDAudioProcessorEditor& editor;
+        void recalculate (juce::Rectangle<int> bounds);
 
         // Centre Positions
         juce::Point<int> hpLpCentre;
@@ -83,17 +73,45 @@ private:
         int volumeHeight;
     };
 
+    OJDAudioProcessorEditor& editor;
+
     SubcomponentLayouts layouts;
 
-    jb::SVGComponent background { BinaryData::background_svg, BinaryData::background_svgSize };
+    juce::ImageComponent housingShadow;
+    jb::SVGComponent housing;
+
+    AttachedSlider driveSlider, toneSlider, volumeSlider;
+
+    juce::ImageComponent shadowOverlay;
+
+    AttachedBypassButton bypassSwitch, bypassLED;
+    AttachedHpLpButton hpLpSwitch;
+};
+
+class OJDAudioProcessorEditor  : public jb::PluginEditorBase<OJDEditorConstants::contentMinWidth, OJDEditorConstants::overallMinHeight>,
+                                 public OJDEditorConstants
+{
+public:
+    OJDAudioProcessorEditor (OJDAudioProcessor&);
+    ~OJDAudioProcessorEditor() override;
+
+    //==============================================================================
+    void constrainedResized() override;
+    void checkBounds (juce::Rectangle<int>& bounds, const juce::Rectangle<int>&, const juce::Rectangle<int>&, bool, bool, bool, bool) override;
+    void paint (juce::Graphics& g) override;
+
+private:
+    void addPresetManager (OJDAudioProcessor& processorToControl);
+
+    void checkMessageOfTheDay (OJDAudioProcessor& processor);
+
+    jb::SVGComponent background;
+
+    OJDPedalComponent pedal;
 
     const std::unique_ptr<juce::Drawable> knobDrawable;
 
     OJDLookAndFeel ojdLookAndFeel;
-
-    AttachedSlider driveSlider, toneSlider, volumeSlider;
-    AttachedBypassButton bypassSwitch, bypassLED;
-    AttachedHpLpButton hpLpSwitch;
 
     std::unique_ptr<jb::PresetManagerComponent> presetManagerComponent;
 
