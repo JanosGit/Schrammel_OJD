@@ -4,6 +4,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "OJDProcessor.h"
 #include "OJDLookAndFeel.h"
+#include "SlideSwitch.h"
 
 class OJDAudioProcessorEditor;
 
@@ -30,9 +31,9 @@ private:
     /** Determines how AAX automation highlight boxes are drawn */
     using HighlightLayout = jb::HighlightableWidget::BoxLayout;
 
-    using AttachedSlider       = jb::AttachedWidget<juce::Slider,  HighlightLayout::SquareCenteredAboveParent>;
-    using AttachedBypassButton = jb::AttachedWidget<jb::SVGButton, HighlightLayout::SquareCenteredAboveParent>;
-    using AttachedHpLpButton   = jb::AttachedWidget<jb::SVGButton, HighlightLayout::FollowParentBounds>;
+    using AttachedSlider      = jb::AttachedWidget<juce::Slider,  HighlightLayout::SquareCenteredAboveParent>;
+    using AttachedLED         = jb::AttachedWidget<jb::SVGButton, HighlightLayout::SquareCenteredAboveParent>;
+    using AttachedSlideSwitch = jb::AttachedWidget<SlideSwitch,   HighlightLayout::FollowParentBounds>;
 
     /** Adds a slider to the component, makes it visible and performs some general styling */
     void addSliderAndSetStyle (AttachedSlider& slider);
@@ -84,8 +85,8 @@ private:
 
     juce::ImageComponent shadowOverlay;
 
-    AttachedBypassButton bypassSwitch, bypassLED;
-    AttachedHpLpButton hpLpSwitch;
+    AttachedLED bypassLED;
+    AttachedSlideSwitch bypassSwitch, hpLpSwitch;
 };
 
 class OJDAudioProcessorEditor  : public jb::PluginEditorBase<OJDEditorConstants::contentMinWidth, OJDEditorConstants::overallMinHeight>,

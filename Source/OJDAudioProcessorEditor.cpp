@@ -3,15 +3,25 @@
 #include "OJDProcessor.h"
 #include "OJDAudioProcessorEditor.h"
 
+juce::Rectangle<int> scaledKeepingCentre (const juce::Rectangle<int>& src, float scale)
+{
+    auto centre = src.getCentre().toFloat();
+    auto scaled = src.toFloat() * scale;
+
+    scaled.setCentre (centre);
+
+    return scaled.toNearestInt();
+}
+
 OJDPedalComponent::OJDPedalComponent (OJDAudioProcessor &proc, OJDAudioProcessorEditor& e)
   : editor       (e),
     housing      (BinaryData::pedalHousing_svg, BinaryData::pedalHousing_svgSize),
     driveSlider  (proc.parameters, OJDParameters::Sliders::Drive::id),
     toneSlider   (proc.parameters, OJDParameters::Sliders::Tone::id),
     volumeSlider (proc.parameters, OJDParameters::Sliders::Volume::id),
-    bypassSwitch (proc.parameters, OJDParameters::Switches::Bypass::id, BinaryData::slideSwitchOff_svg, BinaryData::slideSwitchOff_svgSize, BinaryData::slideSwitchOn_svg, BinaryData::slideSwitchOn_svgSize, "Bypass"),
-    bypassLED    (proc.parameters, OJDParameters::Switches::Bypass::id, BinaryData::ledOff_svg,         BinaryData::ledOff_svgSize,         BinaryData::ledOn_svg,         BinaryData::ledOn_svgSize, "LED"),
-    hpLpSwitch   (proc.parameters, OJDParameters::Switches::HpLp::id,   BinaryData::slideSwitchLP_svg,  BinaryData::slideSwitchLP_svgSize,  BinaryData::slideSwitchHP_svg, BinaryData::slideSwitchHP_svgSize,   "HpLp")
+    bypassLED    (proc.parameters, OJDParameters::Switches::Bypass::id, BinaryData::ledOff_svg,           BinaryData::ledOff_svgSize, BinaryData::ledOn_svg, BinaryData::ledOn_svgSize, "LED"),
+    bypassSwitch (proc.parameters, OJDParameters::Switches::Bypass::id, BinaryData::bypassBackground_svg, BinaryData::bypassBackground_svgSize, juce::Rectangle<float> (0.3f, 0.1f, 0.9f, 0.9f)),
+    hpLpSwitch   (proc.parameters, OJDParameters::Switches::HpLp::id,   BinaryData::hpLpBackground_svg,   BinaryData::hpLpBackground_svgSize,   juce::Rectangle<float> (0.05f, 0.05f, 0.9f, 0.9f))
 {
     housingShadow.setImage (juce::ImageFileFormat::loadFrom (BinaryData::pedalHousingShadow_png, BinaryData::pedalHousingShadow_pngSize));
     shadowOverlay.setImage (juce::ImageFileFormat::loadFrom (BinaryData::shadowOverlay_png, BinaryData::shadowOverlay_pngSize));
@@ -26,16 +36,20 @@ OJDPedalComponent::OJDPedalComponent (OJDAudioProcessor &proc, OJDAudioProcessor
     addSliderAndSetStyle (toneSlider);
 
     addBypassElementsAndSetStyle();
- 
+
     addHpLpSwitchAndSetStyle();
 }
 
 void OJDPedalComponent::resized()
 {
     auto bounds = getLocalBounds();
-    housing.setBounds (bounds);
-    housingShadow.setBounds (bounds);
-    shadowOverlay.setBounds (bounds);
+
+    DBG (bounds.toDouble().getAspectRatio());
+
+    auto hb = scaledKeepingCentre (bounds, 0.94f);
+    housing.setBounds (hb);
+    housingShadow.setBounds (hb);
+    shadowOverlay.setBounds (hb);
 
     layouts.recalculate (bounds);
 
@@ -87,7 +101,8 @@ void OJDAudioProcessorEditor::constrainedResized()
 
     auto contentBounds = getLocalBounds().withTrimmedTop (presetManagerComponentHeight);
     background.setBounds (contentBounds);
-    pedal.setBounds (contentBounds.reduced (20));
+
+    pedal.setBounds (scaledKeepingCentre (contentBounds, 0.85f));
 }
 
 void OJDAudioProcessorEditor::checkBounds (juce::Rectangle<int>& bounds, const juce::Rectangle<int>&, const juce::Rectangle<int>&, bool, bool, bool, bool)
@@ -167,29 +182,29 @@ void OJDAudioProcessorEditor::checkMessageOfTheDay (OJDAudioProcessor& proc)
 
 void OJDPedalComponent::SubcomponentLayouts::recalculate (juce::Rectangle<int> bounds)
 {
-    hpLpCentre.x   = bounds.proportionOfWidth (0.498f);
-    bypassCentre.x = bounds.proportionOfWidth (0.326f);
+    hpLpCentre.x   = bounds.proportionOfWidth (0.5f);
+    bypassCentre.x = bounds.proportionOfWidth (0.57f);
     ledCentre.x    = bounds.proportionOfWidth (0.5f);
-    volumeCentre.x = bounds.proportionOfWidth (0.33f);
-    driveCentre.x  = bounds.proportionOfWidth (0.67f);
+    volumeCentre.x = bounds.proportionOfWidth (0.315f);
+    driveCentre.x  = bounds.proportionOfWidth (0.68f);
     toneCentre.x   = bounds.proportionOfWidth (0.499f);
 
-    hpLpCentre.y   = bounds.proportionOfHeight (0.301f);
+    hpLpCentre.y   = bounds.proportionOfHeight (0.31f);
     bypassCentre.y = bounds.proportionOfHeight (0.833f);
-    ledCentre.y    = bounds.proportionOfHeight (0.125f);
-    volumeCentre.y = bounds.proportionOfHeight (0.216f);
-    driveCentre.y  = bounds.proportionOfHeight (0.216f);
-    toneCentre.y   = bounds.proportionOfHeight (0.413f);
+    ledCentre.y    = bounds.proportionOfHeight (0.114f);
+    volumeCentre.y = bounds.proportionOfHeight (0.23f);
+    driveCentre.y  = bounds.proportionOfHeight (0.23f);
+    toneCentre.y   = bounds.proportionOfHeight (0.435f);
 
-    hpLpWidth   = bounds.proportionOfWidth (0.15f);
-    bypassWidth = bounds.proportionOfWidth (0.162f);
+    hpLpWidth   = bounds.proportionOfWidth (0.13f);
+    bypassWidth = bounds.proportionOfWidth (0.14f);
     ledWidth    = bounds.proportionOfWidth (0.155f);
     volumeWidth = bounds.proportionOfWidth (0.27f);
     driveWidth  = bounds.proportionOfWidth (0.27f);
     toneWidth   = bounds.proportionOfWidth (0.27f);
 
-    hpLpHeight   = bounds.proportionOfHeight (0.1f);
-    bypassHeight = bounds.proportionOfHeight (0.162f);
+    hpLpHeight   = bounds.proportionOfHeight (0.0362f);
+    bypassHeight = bounds.proportionOfHeight (0.036f);
     ledHeight    = bounds.proportionOfHeight (0.155f);
     volumeHeight = bounds.proportionOfHeight (0.2f);
     driveHeight  = bounds.proportionOfHeight (0.2f);
