@@ -58,7 +58,7 @@ public:
         knobBounds = getLocalBounds().toFloat() * knobScaling;
         auto knobHeight = knobBounds.getHeight();
         knobBounds.setWidth (knobHeight);
-        knobBounds.translate (knobHeight * -0.22f, knobHeight * -0.22f);
+        knobBounds.translate (knobHeight * -0.2f, knobHeight * -0.22f);
     }
 
 private:
@@ -86,9 +86,8 @@ private:
 
             g.reduceClipRegion (mask);
 
-            auto shadowBounds = (getLocalBounds().toFloat() * 1.9f).translated (getWidth() * -0.45f, getHeight() * -0.6f);
+            auto shadowBounds = (getLocalBounds().toFloat() * 1.9f).translated (getWidth() * -0.46f, getHeight() * -0.6f);
             g.drawImage (shadow, shadowBounds, juce::RectanglePlacement::centred);
-
 
             g.drawImage (bgImage, bgBounds, juce::RectanglePlacement::centred);
         }

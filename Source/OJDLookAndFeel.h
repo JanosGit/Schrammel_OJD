@@ -30,16 +30,20 @@ public:
                            float sliderPosProportional,
                            float, float, juce::Slider&) override
     {
-
         auto bounds = getSquareCenteredInRectangle (x, y, width, height);
         auto centre = bounds.getCentre();
-        auto shiftX = bounds.getX() - x;
-        auto shiftY = bounds.getY() - y;
+        auto shiftX = bounds.getX() - static_cast<float> (x);
+        auto shiftY = bounds.getY() - static_cast<float> (y);
 
-        auto rotationAngle = sliderPosProportional * 1.5f * juce::MathConstants<float>::pi;
+        // The true centre of the knob svgs is slighly off centre, this will correct that issue
+        centre.x += -0.01739130435f * bounds.getWidth();
+        centre.y += -0.00434782608f * bounds.getHeight();
 
-        auto transform = juce::AffineTransform::scale (bounds.getWidth() / knob->getWidth()).translated (shiftX, shiftY).rotated (rotationAngle, centre.x, centre.y);
+        auto rotationAngle = (sliderPosProportional -0.5f) * 1.5f * juce::MathConstants<float>::pi;
 
+        auto transform = juce::AffineTransform::scale (bounds.getWidth() / knob->getWidth())
+                                               .translated (shiftX, shiftY)
+                                               .rotated (rotationAngle, centre.x, centre.y);
         knob->setTransform (transform);
 
         knob->drawAt (g, static_cast<float> (x), static_cast<float> (y), 1.0f);

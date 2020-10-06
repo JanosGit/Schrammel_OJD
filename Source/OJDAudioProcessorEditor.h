@@ -15,7 +15,7 @@ struct OJDEditorConstants
     static constexpr int   contentMinHeight             = 568;
     static constexpr int   overallMinHeight             = presetManagerComponentHeight + contentMinHeight;
     static constexpr int   contentMinWidth              = 310;
-    static constexpr float contentAspectRatio           = 0.545774647887324f;
+    static constexpr float contentAspectRatio           = 0.5876168224f;
 };
 
 /** The pedal itself is held in a separate component to be able to move it around on the background e.g. for messages */
@@ -103,12 +103,19 @@ public:
 
 private:
     void addPresetManager (OJDAudioProcessor& processorToControl);
+    void setupAndAddMessageOfTheDayComponents();
 
     void checkMessageOfTheDay (OJDAudioProcessor& processor);
+    void setMessage (const juce::String& text, const juce::URL url);
 
     jb::SVGComponent background;
 
     OJDPedalComponent pedal;
+
+    bool isInMessageState;
+    juce::TextEditor messageEditor;
+    juce::TextButton messageOkButton;
+    juce::TextButton messageLearnMoreButton;
 
     const std::unique_ptr<juce::Drawable> knobDrawable;
 
