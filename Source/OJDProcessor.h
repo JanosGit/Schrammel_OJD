@@ -6,7 +6,6 @@
 #include "OJDParameters.h"
 #include "ToneStack.h"
 #include "Waveshaper.h"
-#include "Drawables.h"
 
 class OJDAudioProcessor
   : public jb::PluginAudioProcessorBase<OJDParameters>,
@@ -28,7 +27,11 @@ public:
 
     juce::AudioProcessorEditor* createEditor() override;
 
-    Drawables drawables;
+    /**
+     * Returns a InfoAndUpdate struct if a message has received from the server before the timeout occured or
+     * a nullpointer if either the server didn't respond (yet) or the message has already been displayed
+     */
+    std::unique_ptr<jb::MessageOfTheDay::InfoAndUpdate> getMessageOfTheDay (int timeoutMilliseconds);
 
     /** This processor will only process one channel */
     static const int numChannels = 1;
@@ -72,6 +75,10 @@ private:
     juce::dsp::IIR::Coefficients<float>::Ptr biquadPostDriveBoost2Coeffs;
     juce::dsp::IIR::Coefficients<float>::Ptr biquadPostDriveBoost3Coeffs;
 
+    jb::MessageOfTheDay messageOfTheDay { juce::URL ("https://schrammel.io/motd/ojd.json"), ProjectInfo::versionNumber };
+    std::future<jb::MessageOfTheDay::InfoAndUpdate> infoAndUpdateMessage;
+
+    void checkForMessageOfTheDay();
     void recalculateFilters();
     void updateParametersForProcessorChain();
 

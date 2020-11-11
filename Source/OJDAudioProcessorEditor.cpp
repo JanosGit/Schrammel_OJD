@@ -3,20 +3,33 @@
 #include "OJDProcessor.h"
 #include "OJDAudioProcessorEditor.h"
 
-//==============================================================================
-OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
- :  juce::AudioProcessorEditor (&proc),
-    drawables        (proc.drawables),
-    layouts          (*this),
-    ojdLookAndFeel   (drawables),
-    driveSlider      (proc.parameters, OJDParameters::Sliders::Drive::id),
-    toneSlider       (proc.parameters, OJDParameters::Sliders::Tone::id),
-    volumeSlider     (proc.parameters, OJDParameters::Sliders::Volume::id),
-    bypassSwitch     (proc.parameters, OJDParameters::Switches::Bypass::id, "Bypass", juce::DrawableButton::ImageFitted),
-    bypassLED        (proc.parameters, OJDParameters::Switches::Bypass::id, "LED",    juce::DrawableButton::ImageFitted),
-    hpLpSwitch       (proc.parameters, OJDParameters::Switches::HpLp::id,   "HpLp",   juce::DrawableButton::ImageFitted)
+juce::Rectangle<int> scaledKeepingCentre (const juce::Rectangle<int>& src, float scale)
 {
-    setLookAndFeel (&ojdLookAndFeel);
+    auto centre = src.getCentre().toFloat();
+    auto scaled = src.toFloat() * scale;
+
+    scaled.setCentre (centre);
+
+    return scaled.toNearestInt();
+}
+
+OJDPedalComponent::OJDPedalComponent (OJDAudioProcessor &proc, OJDAudioProcessorEditor& e)
+  : editor       (e),
+    housing      (BinaryData::pedalHousing_svg, BinaryData::pedalHousing_svgSize),
+    driveSlider  (proc.parameters, OJDParameters::Sliders::Drive::id),
+    toneSlider   (proc.parameters, OJDParameters::Sliders::Tone::id),
+    volumeSlider (proc.parameters, OJDParameters::Sliders::Volume::id),
+    bypassLED    (proc.parameters, OJDParameters::Switches::Bypass::id, BinaryData::ledOn_svg,            BinaryData::ledOn_svgSize,            BinaryData::ledOff_svg, BinaryData::ledOff_svgSize, "LED"),
+    bypassSwitch (proc.parameters, OJDParameters::Switches::Bypass::id, BinaryData::bypassBackground_svg, BinaryData::bypassBackground_svgSize, juce::Rectangle<float> (0.3f, 0.1f, 0.9f, 0.9f)),
+    hpLpSwitch   (proc.parameters, OJDParameters::Switches::HpLp::id,   BinaryData::hpLpBackground_svg,   BinaryData::hpLpBackground_svgSize,   juce::Rectangle<float> (0.05f, 0.05f, 0.9f, 0.9f))
+{
+    housingShadow.setImage (juce::ImageFileFormat::loadFrom (BinaryData::pedalHousingShadow_png, BinaryData::pedalHousingShadow_pngSize));
+    shadowOverlay.setImage (juce::ImageFileFormat::loadFrom (BinaryData::shadowOverlay_png, BinaryData::shadowOverlay_pngSize));
+
+    addAndMakeVisible (housingShadow);
+    addAndMakeVisible (housing);
+
+    addAndMakeVisible (shadowOverlay);
 
     addSliderAndSetStyle (volumeSlider);
     addSliderAndSetStyle (driveSlider);
@@ -25,39 +38,18 @@ OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
     addBypassElementsAndSetStyle();
 
     addHpLpSwitchAndSetStyle();
-
-    addPresetManager (proc);
-
-    setResizable (true, true);
-    setConstrainer (this);
-
-    // Make the UI size restorable
-    auto uiStateTree = proc.parameters.state.getChildWithName (uiStateTreeType);
-
-    lastUIWidth .referTo (uiStateTree.getPropertyAsValue (uiStateTreeWidth,  nullptr));
-    lastUIHeight.referTo (uiStateTree.getPropertyAsValue (uiStateTreeHeight, nullptr));
-    lastUIWidth. addListener (this);
-    lastUIHeight.addListener (this);
-
-    setSize (lastUIWidth.getValue(), lastUIHeight.getValue());
 }
 
-OJDAudioProcessorEditor::~OJDAudioProcessorEditor()
+void OJDPedalComponent::resized()
 {
-    setLookAndFeel (nullptr);
-}
+    auto bounds = getLocalBounds();
 
-void OJDAudioProcessorEditor::paint (juce::Graphics& g)
-{
-    drawables.editorBackground->drawAt (g, 0, presetManagerComponentHeight, 1.0f);
-}
+    auto hb = scaledKeepingCentre (bounds, 0.94f);
+    housing.setBounds (hb);
+    housingShadow.setBounds (hb);
+    shadowOverlay.setBounds (hb);
 
-void OJDAudioProcessorEditor::resized()
-{
-    presetManagerComponent->setBounds (getLocalBounds().removeFromTop (presetManagerComponentHeight));
-
-    layouts.recalculate();
-    drawables.editorBackground->setTransform (layouts.getBackgroundTransform());
+    layouts.recalculate (bounds);
 
     // set sizes
     hpLpSwitch  .setSize (layouts.hpLpWidth,   layouts.hpLpHeight);
@@ -74,32 +66,9 @@ void OJDAudioProcessorEditor::resized()
     volumeSlider.setCentrePosition (layouts.volumeCentre);
     driveSlider .setCentrePosition (layouts.driveCentre);
     toneSlider  .setCentrePosition (layouts.toneCentre);
-
-    // Store size
-    lastUIHeight = getHeight();
-    lastUIWidth  = getWidth();
 }
 
-const juce::ValueTree OJDAudioProcessorEditor::createUIStateSubtree()
-{
-    return juce::ValueTree (uiStateTreeType,
-                           {
-                               { uiStateTreeWidth,  contentMinWitdh },
-                               { uiStateTreeHeight, contentMinHeight + presetManagerComponentHeight}
-                           });
-}
-
-void OJDAudioProcessorEditor::checkBounds (juce::Rectangle<int>& bounds, const juce::Rectangle<int>&, const juce::Rectangle<int>&, bool, bool, bool, bool)
-{
-    auto contentHeight = juce::jmax (contentMinHeight, bounds.getHeight() - presetManagerComponentHeight);
-    auto contentWidth  = juce::jmax (contentMinWitdh, juce::roundToInt (contentHeight * contentAspectRatio));
-
-    bounds.setSize (contentWidth, contentHeight + presetManagerComponentHeight);
-}
-
-void OJDAudioProcessorEditor::valueChanged (juce::Value&) { setSize (lastUIWidth.getValue(), lastUIHeight.getValue()); }
-
-void OJDAudioProcessorEditor::addSliderAndSetStyle (juce::Slider& slider)
+void OJDPedalComponent::addSliderAndSetStyle (AttachedSlider& slider)
 {
     slider.setSliderStyle  (juce::Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     slider.setTextBoxStyle (juce::Slider::NoTextBox, true, 0, 0);
@@ -107,32 +76,130 @@ void OJDAudioProcessorEditor::addSliderAndSetStyle (juce::Slider& slider)
     slider.setPopupDisplayEnabled (true, true, this);
 
     addAndMakeVisible (slider);
+    editor.registerHighlightableWidget (slider);
 }
 
-void OJDAudioProcessorEditor::addBypassElementsAndSetStyle()
+void OJDPedalComponent::addBypassElementsAndSetStyle()
 {
-    bypassSwitch.setImages (drawables.footSwitch.get());
-    bypassSwitch.setColour (juce::DrawableButton::backgroundColourId,   juce::Colours::transparentBlack);
-    bypassSwitch.setColour (juce::DrawableButton::backgroundOnColourId, juce::Colours::transparentBlack);
     bypassSwitch.setClickingTogglesState (true);
 
-    bypassLED.setImages (drawables.ledOn.get(), nullptr, nullptr, nullptr, drawables.ledOff.get());
-    bypassLED.setColour (juce::DrawableButton::backgroundColourId,   juce::Colours::transparentBlack);
-    bypassLED.setColour (juce::DrawableButton::backgroundOnColourId, juce::Colours::transparentBlack);
     bypassLED.setClickingTogglesState (false);
 
     addAndMakeVisible (bypassSwitch);
     addAndMakeVisible (bypassLED);
+
+    editor.registerHighlightableWidget (bypassSwitch);
 }
 
-void OJDAudioProcessorEditor::addHpLpSwitchAndSetStyle()
+void OJDPedalComponent::addHpLpSwitchAndSetStyle()
 {
-    hpLpSwitch.setImages (drawables.slideSwitchLP.get(), nullptr, nullptr, nullptr, drawables.slideSwitchHP.get());
-    hpLpSwitch.setColour (juce::DrawableButton::backgroundColourId,   juce::Colours::transparentBlack);
-    hpLpSwitch.setColour (juce::DrawableButton::backgroundOnColourId, juce::Colours::transparentBlack);
     hpLpSwitch.setClickingTogglesState (true);
 
     addAndMakeVisible (hpLpSwitch);
+
+    editor.registerHighlightableWidget (hpLpSwitch);
+}
+
+void OJDPedalComponent::SubcomponentLayouts::recalculate (juce::Rectangle<int> bounds)
+{
+    hpLpCentre.x   = bounds.proportionOfWidth (0.5f);
+    bypassCentre.x = bounds.proportionOfWidth (0.57f);
+    ledCentre.x    = bounds.proportionOfWidth (0.5f);
+    volumeCentre.x = bounds.proportionOfWidth (0.34f);
+    driveCentre.x  = bounds.proportionOfWidth (0.68f);
+    toneCentre.x   = bounds.proportionOfWidth (0.507f);
+
+    hpLpCentre.y   = bounds.proportionOfHeight (0.31f);
+    bypassCentre.y = bounds.proportionOfHeight (0.833f);
+    ledCentre.y    = bounds.proportionOfHeight (0.11f);
+    volumeCentre.y = bounds.proportionOfHeight (0.225f);
+    driveCentre.y  = bounds.proportionOfHeight (0.225f);
+    toneCentre.y   = bounds.proportionOfHeight (0.433f);
+
+    hpLpWidth   = bounds.proportionOfWidth (0.13f);
+    bypassWidth = bounds.proportionOfWidth (0.13f);
+    ledWidth    = bounds.proportionOfWidth (0.13f);
+    volumeWidth = bounds.proportionOfWidth (0.27f);
+    driveWidth  = bounds.proportionOfWidth (0.27f);
+    toneWidth   = bounds.proportionOfWidth (0.27f);
+
+    hpLpHeight   = bounds.proportionOfHeight (0.0362f);
+    bypassHeight = bounds.proportionOfHeight (0.036f);
+    ledHeight    = bounds.proportionOfHeight (0.155f);
+    volumeHeight = bounds.proportionOfHeight (0.14f);
+    driveHeight  = bounds.proportionOfHeight (0.14f);
+    toneHeight   = bounds.proportionOfHeight (0.14f);
+}
+
+//==============================================================================
+OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
+ :  jb::PluginEditorBase<contentMinWidth, overallMinHeight> (proc, IsResizable::Yes, UseConstrainer::Yes),
+    background       (BinaryData::background_svg, BinaryData::background_svgSize),
+    pedal            (proc, *this),
+    isInMessageState (false),
+    messageOkButton ("OK"),
+    messageLearnMoreButton ("Learn more"),
+    knobDrawable     (juce::Drawable::createFromImageData (BinaryData::knob_svg, BinaryData::knob_svgSize)),
+    ojdLookAndFeel   (*knobDrawable)
+{
+    setLookAndFeel (&ojdLookAndFeel);
+
+    addAndMakeVisible (background);
+    addAndMakeVisible (pedal);
+
+    addPresetManager (proc);
+    setupAndAddMessageOfTheDayComponents();
+
+    restoreSizeFromState();
+
+    checkMessageOfTheDay (proc);
+}
+
+OJDAudioProcessorEditor::~OJDAudioProcessorEditor()
+{
+    setLookAndFeel (nullptr);
+}
+
+void OJDAudioProcessorEditor::constrainedResized()
+{
+    presetManagerComponent->setBounds (getLocalBounds().removeFromTop (presetManagerComponentHeight));
+
+    auto contentBounds = getLocalBounds().withTrimmedTop (presetManagerComponentHeight);
+    background.setBounds (contentBounds);
+
+    auto pedalBounds = scaledKeepingCentre (contentBounds, 0.85f);
+
+    if (isInMessageState)
+    {
+        pedalBounds.translate (proportionOfWidth (0.8f), 0);
+
+        auto messageBounds = contentBounds.reduced (proportionOfHeight (0.05f));
+
+        messageEditor.applyFontToAllText(getHeight() * 0.025f);
+        messageEditor.setBounds (messageBounds.removeFromTop (proportionOfHeight (0.8f)));
+
+        messageBounds.removeFromTop (proportionOfHeight (0.01f));
+
+        auto okBounds = messageBounds.removeFromLeft (messageBounds.getWidth() / 2);
+        auto learnMoreBounds = messageBounds;
+        messageOkButton.setBounds (okBounds.reduced (proportionOfHeight (0.01f)));
+        messageLearnMoreButton.setBounds (learnMoreBounds.reduced (proportionOfHeight (0.01f)));
+    }
+
+    pedal.setBounds (pedalBounds);
+}
+
+void OJDAudioProcessorEditor::checkBounds (juce::Rectangle<int>& bounds, const juce::Rectangle<int>&, const juce::Rectangle<int>&, bool, bool, bool, bool)
+{
+    auto contentHeight = juce::jmax (contentMinHeight, bounds.getHeight() - presetManagerComponentHeight);
+    auto contentWidth  = juce::jmax (contentMinWidth, juce::roundToInt (contentHeight * contentAspectRatio));
+
+    bounds.setSize (contentWidth, contentHeight + presetManagerComponentHeight);
+}
+
+void OJDAudioProcessorEditor::paint(juce::Graphics &g)
+{
+    g.fillAll (juce::Colours::white);
 }
 
 void OJDAudioProcessorEditor::addPresetManager (OJDAudioProcessor& processorToControl)
@@ -141,45 +208,93 @@ void OJDAudioProcessorEditor::addPresetManager (OJDAudioProcessor& processorToCo
     addAndMakeVisible (*presetManagerComponent);
 }
 
-void OJDAudioProcessorEditor::SubcomponentLayouts::recalculate()
+void OJDAudioProcessorEditor::setupAndAddMessageOfTheDayComponents()
 {
-    auto yOffset = editor.presetManagerComponentHeight;
-    auto bounds = editor.getLocalBounds().withTrimmedTop (yOffset);
+    addChildComponent(messageEditor);
+    addChildComponent (messageOkButton);
+    addChildComponent (messageLearnMoreButton);
 
-    hpLpCentre.x   = bounds.proportionOfWidth (0.498f);
-    bypassCentre.x = bounds.proportionOfWidth (0.326f);
-    ledCentre.x    = bounds.proportionOfWidth (0.5f);
-    volumeCentre.x = bounds.proportionOfWidth (0.33f);
-    driveCentre.x  = bounds.proportionOfWidth (0.67f);
-    toneCentre.x   = bounds.proportionOfWidth (0.499f);
+    messageEditor.setReadOnly (true);
+    messageEditor.setColour (juce::TextEditor::ColourIds::backgroundColourId, juce::Colours::transparentBlack);
+    messageEditor.setColour (juce::TextEditor::ColourIds::outlineColourId, juce::Colours::transparentBlack);
+    messageEditor.setColour (juce::TextEditor::ColourIds::textColourId, juce::Colours::white);
 
-    hpLpCentre.y   = bounds.proportionOfHeight (0.301f) + yOffset;
-    bypassCentre.y = bounds.proportionOfHeight (0.833f) + yOffset;
-    ledCentre.y    = bounds.proportionOfHeight (0.125f) + yOffset;
-    volumeCentre.y = bounds.proportionOfHeight (0.216f) + yOffset;
-    driveCentre.y  = bounds.proportionOfHeight (0.216f) + yOffset;
-    toneCentre.y   = bounds.proportionOfHeight (0.413f) + yOffset;
+    messageEditor.setJustification (juce::Justification::centred);
+    messageEditor.setMultiLine (true);
 
-    hpLpWidth   = bounds.proportionOfWidth (0.15f);
-    bypassWidth = bounds.proportionOfWidth (0.162f);
-    ledWidth    = bounds.proportionOfWidth (0.155f);
-    volumeWidth = bounds.proportionOfWidth (0.27f);
-    driveWidth  = bounds.proportionOfWidth (0.27f);
-    toneWidth   = bounds.proportionOfWidth (0.27f);
+    messageOkButton.setColour (juce::TextButton::ColourIds::buttonColourId, juce::Colours::transparentBlack);
+    messageLearnMoreButton.setColour (juce::TextButton::ColourIds::buttonColourId, juce::Colours::transparentBlack);
 
-    hpLpHeight   = bounds.proportionOfHeight (0.1f);
-    bypassHeight = bounds.proportionOfHeight (0.162f);
-    ledHeight    = bounds.proportionOfHeight (0.155f);
-    volumeHeight = bounds.proportionOfHeight (0.2f);
-    driveHeight  = bounds.proportionOfHeight (0.2f);
-    toneHeight   = bounds.proportionOfHeight (0.2f);
+    messageOkButton.onClick = [this]()
+    {
+        isInMessageState = false;
+
+        messageEditor.setVisible (false);
+        messageOkButton.setVisible (false);
+        messageLearnMoreButton.setVisible (false);
+
+        constrainedResized();
+        repaint();
+    };
 }
 
-juce::AffineTransform OJDAudioProcessorEditor::SubcomponentLayouts::getBackgroundTransform()
+void OJDAudioProcessorEditor::checkMessageOfTheDay (OJDAudioProcessor& proc)
 {
-    return juce::AffineTransform::scale (editor.getWidth() * widthToBackgroundScaleFactor);
+    juce::Timer::callAfterDelay(500, [&]()
+    {
+        juce::String motdVersion = "LastMOTDVersionDisplayed";
+        auto& settingsManager = *jb::SettingsManager::getInstance();
+
+        if (!settingsManager.settingExists(motdVersion))
+        {
+            juce::String welcomeMessage =
+R"(
+Welcome!
+
+Thanks for downloading the OJD. It's a completely free and open source distortion plugin, modeled after a well known analogue guitar effects pedal.
+
+For best sounding results, I suggest you to put this somewhere before your guitar amp (plugin) and before reverb, delay and modulation plugins, just as you would place a real pedal on your pedal board. Being creative and using it somewhere else in your chain is possible too but be prepared that this will cause a lot of sharp high frequencies.
+
+There are two basic sound characteristics you can select with the upper mid slide switch. The LP mode gives you a warmer tone with slightly less gain, the HP mode boost some higher frequencies, leading to a more aggressive distortion with some more gain. Just play around with the knobs until you find a setting you like. So, let's go!
+)";
+            setMessage (welcomeMessage, juce::URL ("https://schrammel.io"));
+            settingsManager.writeSetting (motdVersion, int64_t (0));
+        }
+        else if (auto messages = proc.getMessageOfTheDay (500))
+        {
+            auto updateMessage  = std::move (messages->updateMessage);
+            auto generalMessage = std::move (messages->generalMessage);
+
+            if (updateMessage != nullptr)
+            {
+                setMessage ("OJD Update Available\n\n" + updateMessage->text, updateMessage->link);
+                return;
+            }
+
+            if (generalMessage != nullptr)
+            {
+                setMessage ("Info\n\n" + generalMessage->text, generalMessage->link);
+                settingsManager.writeSetting (motdVersion, generalMessage->version);
+            }
+        }
+    });
 }
 
-const juce::Identifier OJDAudioProcessorEditor::uiStateTreeType   ("uiState");
-const juce::Identifier OJDAudioProcessorEditor::uiStateTreeWidth  ("width");
-const juce::Identifier OJDAudioProcessorEditor::uiStateTreeHeight ("height");
+void OJDAudioProcessorEditor::setMessage (const juce::String& text, const juce::URL url)
+{
+    messageEditor.setText (text);
+
+    messageLearnMoreButton.onClick = [url] ()
+    {
+        url.launchInDefaultBrowser();
+    };
+
+    messageEditor.setVisible (true);
+    messageOkButton.setVisible (true);
+    messageLearnMoreButton.setVisible (true);
+
+    isInMessageState = true;
+
+    constrainedResized();
+    repaint();
+}

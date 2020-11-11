@@ -4,3 +4,6 @@
 [submodule "Ext/JUCE"]
 	path = Ext/JUCE
 	url = https://github.com/WeAreROLI/JUCE.git
+[submodule "Ext/Resvg4JUCE"]
+	path = Ext/Resvg4JUCE
+	url = https://github.com/JanosGit/Resvg4JUCE.git

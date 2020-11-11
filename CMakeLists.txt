@@ -1,18 +1,36 @@
 
 cmake_minimum_required (VERSION 3.16)
 
-project (SCHRAMMEL_OJD VERSION 0.9.5)
-
-# If we are using MSVC we want static runtime linkage
+# If we are using MSVC we want dynamic runtime linkage
 if (MSVC)
-    set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 endif()
+
+# If we are compiling for Mac OS we want to target OS versions down to 10.9
+if (APPLE)
+    set (CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE INTERNAL "")
+endif()
+
+project (SCHRAMMEL_OJD VERSION 0.9.6)
 
 # Adding JUCE
 add_subdirectory (Ext/JUCE)
 
+# Adding JSON
+set (JSON_BuildTests OFF CACHE INTERNAL "")
+set (JSON_Install OFF CACHE INTERNAL "")
+add_subdirectory (Ext/JBPluginBase/Ext/json)
+
 # Adding own modules
 juce_add_module (Ext/JBPluginBase/jb_plugin_base)
+juce_add_module (Ext/Resvg4JUCE/jb_resvg)
+
+# Set include paths for resvg lib. Todo: Make target based
+if (WIN32)
+    LINK_DIRECTORIES (Ext/Resvg4JUCE/jb_resvg/libs/VisualStudio2019/x64/MD)
+else()
+    LINK_DIRECTORIES (Ext/Resvg4JUCE/jb_resvg/libs/MacOSX/x86_64)
+endif()
 
 # VST3 should be built on all platforms
 set (FormatsToBuild VST3)
@@ -30,16 +48,20 @@ endif()
 
 # Add the plugin target itself
 juce_add_plugin (OJD
-        COMPANY_NAME Schrammel                      # Specify the name of the plugin's author
-        IS_SYNTH FALSE                              # Is this a synth or an effect?
-        NEEDS_MIDI_INPUT FALSE                      # Does the plugin need midi input?
-        NEEDS_MIDI_OUTPUT FALSE                     # Does the plugin need midi output?
-        IS_MIDI_EFFECT FALSE                        # Is this plugin a MIDI effect?
+        COMPANY_NAME Schrammel
+        PRODUCT_NAME "OJD"
+        IS_SYNTH FALSE
+        NEEDS_MIDI_INPUT FALSE
+        NEEDS_MIDI_OUTPUT FALSE
+        IS_MIDI_EFFECT FALSE
         COPY_PLUGIN_AFTER_BUILD TRUE                # Should the plugin be installed to a default location after building?
-        PLUGIN_MANUFACTURER_CODE Juce               # A four-character manufacturer id with at least one upper-case character
-        PLUGIN_CODE Dem0                            # A unique four-character plugin id with at least one upper-case character
-        FORMATS ${FormatsToBuild}                   # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
-        PRODUCT_NAME "OJD")                         # The name of the final executable, which can differ from the target name
+        FORMATS ${FormatsToBuild}                   # The formats to build. Depending on the platform and if an AAX SDK is passed in
+        PLUGIN_MANUFACTURER_CODE Srml               # A four-character manufacturer id with at least one upper-case character
+        PLUGIN_CODE SOJD                            # A unique four-character plugin id with at least one upper-case character
+        AAX_IDENTIFIER de.schrammel.ojd
+        VST3_CATEGORIES Fx Distortion
+        AU_MAIN_TYPE kAudioUnitType_Effect
+        AAX_CATEGORY AAX_ePlugInCategory_Harmonic)
 
 # We want to compile the plugin with C++14
 target_compile_features (OJD PRIVATE cxx_std_14)
@@ -63,7 +85,8 @@ target_compile_definitions (OJD
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_STRICT_REFCOUNTEDPTR=1
-        JUCE_VST3_CAN_REPLACE_VST2=0)
+        JUCE_VST3_CAN_REPLACE_VST2=0
+        JB_INCLUDE_JSON=1)
 
 target_link_libraries (OJD PRIVATE
         # JUCE Modules
@@ -72,6 +95,10 @@ target_link_libraries (OJD PRIVATE
 
         # Custom modules
         jb_plugin_base
+        jb_resvg
+
+        # JSON dependncy in plugin base
+        nlohmann_json::nlohmann_json
 
         # Binary Data
         EmbeddedSVGs

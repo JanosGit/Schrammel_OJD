@@ -21,6 +21,9 @@ OJDAudioProcessor::OJDAudioProcessor()
 
     // Add a subtree where the editor stores some states
     parameters.state.appendChild (OJDAudioProcessorEditor::createUIStateSubtree(), nullptr);
+
+    // Try to reach the schrammel server to find out if there is e.g. an update message to display
+    checkForMessageOfTheDay();
 }
 
 void OJDAudioProcessor::prepareResources (bool sampleRateChanged, bool maxBlockSizeChanged, bool numChannelsChanged)
@@ -67,6 +70,29 @@ void OJDAudioProcessor::processBlock (juce::dsp::AudioBlock<float>& block)
 
 
 juce::AudioProcessorEditor* OJDAudioProcessor::createEditor() { return new OJDAudioProcessorEditor (*this); }
+
+void OJDAudioProcessor::checkForMessageOfTheDay()
+{
+    auto& settingsManager = *jb::SettingsManager::getInstance();
+    auto lastVersion = settingsManager.getInt64Setting ("LastMOTDVersionDisplayed", -1);
+
+    infoAndUpdateMessage = messageOfTheDay.checkForNewMessages (lastVersion);
+}
+
+std::unique_ptr<jb::MessageOfTheDay::InfoAndUpdate> OJDAudioProcessor::getMessageOfTheDay (int timeoutMilliseconds)
+{
+    // The message has already been read
+    if (!infoAndUpdateMessage.valid())
+        return nullptr;
+
+    auto waitDuration = std::chrono::milliseconds (timeoutMilliseconds);
+
+    if (infoAndUpdateMessage.wait_for (waitDuration) == std::future_status::ready)
+        return std::make_unique<jb::MessageOfTheDay::InfoAndUpdate> (infoAndUpdateMessage.get());
+
+    // Timeout has been reached
+    return nullptr;
+}
 
 void OJDAudioProcessor::updateParametersForProcessorChain()
 {
