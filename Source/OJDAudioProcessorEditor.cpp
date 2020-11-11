@@ -240,9 +240,27 @@ void OJDAudioProcessorEditor::setupAndAddMessageOfTheDayComponents()
 
 void OJDAudioProcessorEditor::checkMessageOfTheDay (OJDAudioProcessor& proc)
 {
-    juce::Timer::callAfterDelay(1000, [&]()
+    juce::Timer::callAfterDelay(500, [&]()
     {
-        if (auto messages = proc.getMessageOfTheDay (500))
+        juce::String motdVersion = "LastMOTDVersionDisplayed";
+        auto& settingsManager = *jb::SettingsManager::getInstance();
+
+        if (!settingsManager.settingExists(motdVersion))
+        {
+            juce::String welcomeMessage =
+R"(
+Welcome!
+
+Thanks for downloading the OJD. It's a completely free and open source distortion plugin, modeled after a well known analogue guitar effects pedal.
+
+For best sounding results, I suggest you to put this somewhere before your guitar amp (plugin) and before reverb, delay and modulation plugins, just as you would place a real pedal on your pedal board. Being creative and using it somewhere else in your chain is possible too but be prepared that this will cause a lot of sharp high frequencies.
+
+There are two basic sound characteristics you can select with the upper mid slide switch. The LP mode gives you a warmer tone with slightly less gain, the HP mode boost some higher frequencies, leading to a more aggressive distortion with some more gain. Just play around with the knobs until you find a setting you like. So, let's go!
+)";
+            setMessage (welcomeMessage, juce::URL ("https://schrammel.io"));
+            settingsManager.writeSetting (motdVersion, int64_t (0));
+        }
+        else if (auto messages = proc.getMessageOfTheDay (500))
         {
             auto updateMessage  = std::move (messages->updateMessage);
             auto generalMessage = std::move (messages->generalMessage);
@@ -256,9 +274,7 @@ void OJDAudioProcessorEditor::checkMessageOfTheDay (OJDAudioProcessor& proc)
             if (generalMessage != nullptr)
             {
                 setMessage ("Info\n\n" + generalMessage->text, generalMessage->link);
-
-                auto& settingsManager = *jb::SettingsManager::getInstance();
-                settingsManager.writeSetting ("LastMOTDVersionDisplayed", generalMessage->version);
+                settingsManager.writeSetting (motdVersion, generalMessage->version);
             }
         }
     });
