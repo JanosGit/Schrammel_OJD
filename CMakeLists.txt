@@ -1,9 +1,9 @@
 
 cmake_minimum_required (VERSION 3.16)
 
-# If we are using MSVC we want static runtime linkage
+# If we are using MSVC we want dynamic runtime linkage
 if (MSVC)
-    set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 endif()
 
 # If we are compiling for Mac OS we want to target OS versions down to 10.9
@@ -24,7 +24,13 @@ add_subdirectory (Ext/JBPluginBase/Ext/json)
 # Adding own modules
 juce_add_module (Ext/JBPluginBase/jb_plugin_base)
 juce_add_module (Ext/Resvg4JUCE/jb_resvg)
-LINK_DIRECTORIES (Ext/Resvg4JUCE/jb_resvg/libs/MacOSX/x86_64)
+
+# Set include paths for resvg lib. Todo: Make target based
+if (WIN32)
+    LINK_DIRECTORIES (Ext/Resvg4JUCE/jb_resvg/libs/VisualStudio2019/x64/MD)
+else()
+    LINK_DIRECTORIES (Ext/Resvg4JUCE/jb_resvg/libs/MacOSX/x86_64)
+endif()
 
 # VST3 should be built on all platforms
 set (FormatsToBuild VST3)
