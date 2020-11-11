@@ -19,7 +19,7 @@ OJDPedalComponent::OJDPedalComponent (OJDAudioProcessor &proc, OJDAudioProcessor
     driveSlider  (proc.parameters, OJDParameters::Sliders::Drive::id),
     toneSlider   (proc.parameters, OJDParameters::Sliders::Tone::id),
     volumeSlider (proc.parameters, OJDParameters::Sliders::Volume::id),
-    bypassLED    (proc.parameters, OJDParameters::Switches::Bypass::id, BinaryData::ledOff_svg,           BinaryData::ledOff_svgSize, BinaryData::ledOn_svg, BinaryData::ledOn_svgSize, "LED"),
+    bypassLED    (proc.parameters, OJDParameters::Switches::Bypass::id, BinaryData::ledOn_svg,            BinaryData::ledOn_svgSize,            BinaryData::ledOff_svg, BinaryData::ledOff_svgSize, "LED"),
     bypassSwitch (proc.parameters, OJDParameters::Switches::Bypass::id, BinaryData::bypassBackground_svg, BinaryData::bypassBackground_svgSize, juce::Rectangle<float> (0.3f, 0.1f, 0.9f, 0.9f)),
     hpLpSwitch   (proc.parameters, OJDParameters::Switches::HpLp::id,   BinaryData::hpLpBackground_svg,   BinaryData::hpLpBackground_svgSize,   juce::Rectangle<float> (0.05f, 0.05f, 0.9f, 0.9f))
 {
