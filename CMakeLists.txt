@@ -11,7 +11,7 @@ if (APPLE)
     set (CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE INTERNAL "")
 endif()
 
-project (SCHRAMMEL_OJD VERSION 0.9.6)
+project (SCHRAMMEL_OJD VERSION 0.9.7)
 
 # Adding JUCE
 add_subdirectory (Ext/JUCE)
