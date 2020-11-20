@@ -8,6 +8,11 @@ Just add it to your FX chain before your digital amp simulation of choice and ge
 
 ![](https://schrammel.io/assets/images/header-hero.png)
 
+## License
+The OJD is licensed under a [GPLv3](https://www.gnu.org/licenses/licenses.en.html#GPL) license. This license applies to all parts of this repository except for 
+- The external third party dependencies that can be found as git submodules in the `Ext` subdirectory and contain their own license information
+- The Windows installer, found in the `Deployment/Windows` subdirectory, which is licensed under a [LGPLv3](https://www.gnu.org/licenses/licenses.en.html#LGPL) license as the distributed versions of the installer will contain the closed source Microsoft Visual C++ redistributable runtime library installer
+
 ## How to get the OJD? 🤷‍♀️🤷‍♂️
 
 The plugin is currently in a late, mostly stable beta phase. To download the latest build, go to [my website](https://schrammel.io) and download it for free or alternatively browse the releases directly here on GitHub. Feeback is welcome, you can reach me via the contact via my website or post issues here on GitHub! 
