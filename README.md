@@ -21,6 +21,12 @@ The plugin is currently in a late, mostly stable beta phase. To download the lat
 
 The OJD is currently available for Mac OS and Windows as VST3 and AU (Mac OS only) plugin. I'm working on getting AAX signing up & running to also release an AAX version in the near future.
 
+## Thank goes out to...
+1. My long time good friend and band mate [Henning Oskamp](http://www.henningoskamp.de) for his incredible work on the user interface and website design. The plugin would not look half as good if I had tried designing it ❤️
+2. [JetBrains](https://www.jetbrains.com/?from=schrammel_ojd), a company that builds IDEs that are superior to any other option that I tried out there. I'm very thankful that they support this project with a free license for their CMake IDE Clion!
+
+<a href="https://www.jetbrains.com/?from=schrammel_ojd"><img src="Documentation/Images/icon_CLion.svg" width="15%">
+
 ## How to build the plugin from source
 
 The OJD is a free open source plugin, there is no license key required. Beneath downloading the ready-to-use installers, you can always build it yourself from sources if you are familiar with all those software development stuff. The project is based on a CMake build script. If you are familiar with CMake, building the plugin should be as much as two commands on your command line or one click in a CMake capable IDE like e.g. CLion. I'll post some more detailed information on that in the near future.
