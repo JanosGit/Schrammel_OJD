@@ -1,3 +1,5 @@
+[![Github All Releases](https://img.shields.io/github/downloads/janosgit/schrammel_ojd/total.svg)]()
+
 # Schrammel OJD - Model of a modern classic guitar distortion pedal
 
 Hi! My name is Janos, I like playing e-guitar & tweaking my guitar pedalboard as a hobby, I'm working as an audio software programmer and studied electrical engineering. Coming from this background, I thought that the (guitar/audio) world would need a good sounding, good looking & open source guitar distortion plugin. 
