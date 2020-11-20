@@ -6,7 +6,7 @@ So... May I introduce to you: The Schrammel OJD. Heavily inspired by the schemat
 
 Just add it to your FX chain before your digital amp simulation of choice and get that distortion sound that simply fits the mix perfectly.
 
-![](https://schrammel.io/assets/images/header-hero.png)
+![](Documentation/Images/OJD_Cubase.png)
 
 ## License
 The OJD is licensed under a [GPLv3](https://www.gnu.org/licenses/licenses.en.html#GPL) license. This license applies to all parts of this repository except for 
