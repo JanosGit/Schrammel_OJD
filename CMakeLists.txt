@@ -40,17 +40,10 @@ add_subdirectory (Ext/JUCE)
 set (JSON_BuildTests OFF CACHE INTERNAL "")
 set (JSON_Install OFF CACHE INTERNAL "")
 add_subdirectory (Ext/JBPluginBase/Ext/json)
+add_subdirectory (Ext/Resvg4JUCE)
 
 # Adding own modules
 juce_add_module (Ext/JBPluginBase/jb_plugin_base)
-juce_add_module (Ext/Resvg4JUCE/jb_resvg)
-
-# Set include paths for resvg lib. Todo: Make target based
-if (WIN32)
-    LINK_DIRECTORIES (Ext/Resvg4JUCE/jb_resvg/libs/VisualStudio2019/x64/MD)
-else()
-    LINK_DIRECTORIES (Ext/Resvg4JUCE/jb_resvg/libs/MacOSX/x86_64)
-endif()
 
 # VST3 should be built on all platforms
 set (FormatsToBuild VST3)
@@ -115,7 +108,7 @@ target_link_libraries (OJD PRIVATE
 
         # Custom modules
         jb_plugin_base
-        jb_resvg
+        jb::Resvg4JUCE
 
         # JSON dependncy in plugin base
         nlohmann_json::nlohmann_json
