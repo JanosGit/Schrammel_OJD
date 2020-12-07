@@ -20,6 +20,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 
 #pragma once
+#include <Resvg4JUCE/Resvg4JUCE.h>
 
 extern juce::Rectangle<int> scaledKeepingCentre (const juce::Rectangle<int>& src, float scale);
 
