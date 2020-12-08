@@ -2,6 +2,11 @@ name: Build
 
 on: [push]
 
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: RelWithDebInfo
+  
+
 jobs:
   build:
     # The CMake configure and build commands are platform agnostic and should work equally
@@ -31,20 +36,20 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: Build
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake --build . --config RelWithDebInfo --verbose
+      run: cmake --build . --config $BUILD_TYPE --verbose
 
     - name: Zip
-      working-directory: ${{runner.workspace}}/build/OJD_artefacts/Release/VST3
+      working-directory: ${{runner.workspace}}/build/OJD_artefacts/$BUILD_TYPE/VST3
       shell: bash
       run: tar -czvf OJD-${{ matrix.os.name }}-vst3.tar.gz OJD.vst3
 
     - name: Upload
       uses: actions/upload-artifact@v2.2.1
       with:
-        name: crypt-${{ matrix.os.name }}
-        path: ${{runner.workspace}}/build/OJD_artefacts/Release/VST3/OJD-${{ matrix.os.name }}-vst3.tar.gz
+        name: OJD-${{ matrix.os.name }}
+        path: ${{runner.workspace}}/build/OJD_artefacts/$BUILD_TYPE/VST3/OJD-${{ matrix.os.name }}-vst3.tar.gz
