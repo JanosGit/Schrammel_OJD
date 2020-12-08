@@ -43,13 +43,13 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE --verbose
 
-    - name: Zip
-      working-directory: ${{runner.workspace}}/build/OJD_artefacts/$BUILD_TYPE/VST3
+    - name: Compressing
       shell: bash
+      working-directory: ${{runner.workspace}}/build/OJD_artefacts/Release/VST3
       run: tar -czvf OJD-${{ matrix.os.name }}-vst3.tar.gz OJD.vst3
 
     - name: Upload
       uses: actions/upload-artifact@v2.2.1
       with:
         name: OJD-${{ matrix.os.name }}
-        path: ${{runner.workspace}}/build/OJD_artefacts/$BUILD_TYPE/VST3/OJD-${{ matrix.os.name }}-vst3.tar.gz
+        path: ${{runner.workspace}}/build/OJD_artefacts/Release/VST3/OJD-${{ matrix.os.name }}-vst3.tar.gz
