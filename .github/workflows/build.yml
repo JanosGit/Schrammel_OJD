@@ -29,10 +29,12 @@ jobs:
       run: cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure CMake
+      shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
     - name: Build
+      shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config RelWithDebInfo --verbose
 
