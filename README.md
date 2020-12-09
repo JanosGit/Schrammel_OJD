@@ -1,8 +1,8 @@
-[![Github All Releases](https://img.shields.io/github/downloads/janosgit/schrammel_ojd/total.svg)]()
+[![Github All Releases](https://img.shields.io/github/downloads/janosgit/schrammel_ojd/total.svg)]() ![Build](https://github.com/janosgit/schrammel_ojd/workflows/Build/badge.svg)
 
-# Schrammel OJD - Model of a modern classic guitar distortion pedal
+# Schrammel OJD - Model of a modern classic guitar overdrive pedal
 
-Hi! My name is Janos, I like playing e-guitar & tweaking my guitar pedalboard as a hobby, I'm working as an audio software programmer and studied electrical engineering. Coming from this background, I thought that the (guitar/audio) world would need a good sounding, good looking & open source guitar distortion plugin. 
+Hi! My name is Janos, I like playing e-guitar & tweaking my guitar pedalboard as a hobby, I'm working as an audio software programmer and studied electrical engineering. Coming from this background, I thought that the (guitar/audio) world would need a good sounding, good looking & open source guitar overdrive plugin. 
 
 So... May I introduce to you: The Schrammel OJD. Heavily inspired by the schematics of a modern classic analog pedal, digitally built with my favourite C++ framework [JUCE](https://github.com/juce-framework/JUCE).
 
