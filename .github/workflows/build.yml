@@ -41,10 +41,10 @@ jobs:
     - name: Build
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE --verbose
+      run: cmake --build . --config $BUILD_TYPE
 
     - name: Upload
       uses: actions/upload-artifact@v2.2.1
       with:
         name: OJD-${{ matrix.os.name }}
-        path: ${{runner.workspace}}/build/OJD_artefacts/Release
+        path: ${{runner.workspace}}/build/OJD_artefacts/$BUILD_TYPE
