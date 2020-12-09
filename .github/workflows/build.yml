@@ -24,12 +24,10 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{runner.workspace}}/build
-
+    # We are creating the ${{runner.workspace}}/build directory to perform the build
     - name: Configure CMake
       working-directory: ${{runner.workspace}}/build
-      run: cmake ${{runner.workspace}}/Schrammel_OJD -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: cmake ${{runner.workspace}}/Schrammel_OJD -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B ${{runner.workspace}}/build
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
