@@ -22,7 +22,8 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 ]]
 
 # If we are using MSVC we want dynamic runtime linkage
-if (MSVC)
+if (WIN32)
+    set (CMAKE_GENERATOR_TOOLSET ClangCL)
     set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 endif()
 
