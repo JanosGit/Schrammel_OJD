@@ -18,8 +18,6 @@ jobs:
           name: mac
         - runner: windows-latest
           name: windows
-        - runner: ubuntu-latest
-          name: linux
 
     steps:
     - uses: actions/checkout@v2
