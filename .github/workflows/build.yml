@@ -26,8 +26,8 @@ jobs:
 
     # We are creating the ${{runner.workspace}}/build directory to perform the build
     - name: Configure CMake
-      working-directory: ${{runner.workspace}}/build
-      run: cmake ${{runner.workspace}}/Schrammel_OJD -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B ${{runner.workspace}}/build
+      working-directory: ${{runner.workspace}}
+      run: cmake -S Schrammel_OJD -B ${{runner.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
