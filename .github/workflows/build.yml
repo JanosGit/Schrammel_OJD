@@ -47,4 +47,4 @@ jobs:
       uses: actions/upload-artifact@v2.2.1
       with:
         name: OJD-${{ matrix.os.name }}
-        path: ${{runner.workspace}}/build/OJD_artefacts/$BUILD_TYPE
+        path: ${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}
