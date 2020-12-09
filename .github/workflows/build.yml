@@ -9,10 +9,6 @@ env:
 
 jobs:
   build:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ${{ matrix.os.runner }}
     
     strategy:
@@ -22,6 +18,8 @@ jobs:
           name: mac
         - runner: windows-latest
           name: windows
+        - runner: ubuntu-latest
+          name: linux
 
     steps:
     - uses: actions/checkout@v2
@@ -29,22 +27,21 @@ jobs:
         submodules: recursive
 
     - name: Create Build Environment
-      # Some projects don't allow in-source building, so create a separate build directory
-      # We'll use this as our working directory for all subsequent commands
       run: cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure CMake
-      shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
-      shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE
+      run: cmake --build . --config ${{env.BUILD_TYPE}}
 
     - name: Upload
       uses: actions/upload-artifact@v2.2.1
       with:
         name: OJD-${{ matrix.os.name }}
-        path: ${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}
+        path: |
+              ${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}
+              !${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}/**/*.a
+              !${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}/**/*.lib
