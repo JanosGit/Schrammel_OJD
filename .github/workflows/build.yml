@@ -1,0 +1,43 @@
+name: Build
+
+on: [push]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: RelWithDebInfo
+  
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os.runner }}
+    
+    strategy:
+      matrix:
+        os:
+        - runner: macos-latest
+          name: mac
+        - runner: windows-latest
+          name: windows
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    # We are creating the ${{runner.workspace}}/build directory to perform the build
+    - name: Configure CMake
+      working-directory: ${{runner.workspace}}
+      run: cmake -S Schrammel_OJD -B ${{runner.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build . --config ${{env.BUILD_TYPE}}
+
+    - name: Upload
+      uses: actions/upload-artifact@v2.2.1
+      with:
+        name: OJD-${{ matrix.os.name }}
+        path: |
+              ${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}
+              !${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}/**/*.a
+              !${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}/**/*.lib
