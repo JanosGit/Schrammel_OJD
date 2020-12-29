@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="24"
+   height="24"
+   preserveAspectRatio="xMidYMid meet"
+   viewBox="0 0 24 24"
+   style="-ms-transform: rotate(360deg); -webkit-transform: rotate(360deg); transform: rotate(360deg);"
+   version="1.1"
+   id="svg837"
+   sodipodi:docname="settings-option.svg"
+   inkscape:version="1.0.1 (c497b03c, 2020-09-10)">
+  <metadata
+     id="metadata843">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs841" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1453"
+     inkscape:window-height="756"
+     id="namedview839"
+     showgrid="false"
+     inkscape:zoom="24.166667"
+     inkscape:cx="12"
+     inkscape:cy="1.0826087"
+     inkscape:window-x="0"
+     inkscape:window-y="23"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg837" />
+  <path
+     fill="none"
+     stroke="#626262"
+     stroke-width="2"
+     d="M12 9V0m3 12h9M0 12h9m3 12v-9m0 6a9 9 0 1 0 0-18a9 9 0 0 0 0 18zM3.5 8.5L1 7.5m19.5 8l2.5 1M3 3l2.5 2.5M3 3l2.5 2.5M18 18l2.5 2.5m0-17.5L18 5.5M5.5 18L3 20.5m9-5.5a3 3 0 1 0 0-6a3 3 0 0 0 0 6zm8.5-6.5l2.5-1m-7.5-4l1-2.5m-1 19.5l1 2.5m-8-2.5l-1 2.5m-4-7.5l-2.5 1m7.5-13L7.5 1"
+     id="path833" />
+  <rect
+     x="0"
+     y="0"
+     width="24"
+     height="24"
+     fill="rgba(0, 0, 0, 0)"
+     id="rect835"
+     style="fill:none" />
+</svg>

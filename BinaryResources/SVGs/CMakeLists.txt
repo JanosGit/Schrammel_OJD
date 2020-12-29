@@ -32,4 +32,5 @@ juce_add_binary_data(EmbeddedSVGs
                 bypassBackground.svg
                 shadowOverlay.png
                 ledOn.svg
-                ledOff.svg)
+                ledOff.svg
+                grommet-icons/settings-option.svg)
