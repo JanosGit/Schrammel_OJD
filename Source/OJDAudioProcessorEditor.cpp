@@ -156,8 +156,9 @@ OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
     background       (BinaryData::background_svg, BinaryData::background_svgSize),
     pedal            (proc, *this),
     isInMessageState (false),
-    messageOkButton ("OK"),
+    messageOkButton  ("OK"),
     messageLearnMoreButton ("Learn more"),
+    settingsButton   ("Settings", juce::DrawableButton::ButtonStyle::ImageFitted),
     knobDrawable     (juce::Drawable::createFromImageData (BinaryData::knob_svg, BinaryData::knob_svgSize)),
     ojdLookAndFeel   (*knobDrawable)
 {
@@ -168,6 +169,7 @@ OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
 
     addPresetManager (proc);
     setupAndAddMessageOfTheDayComponents();
+    setupAndAddSettingsPageComponents();
 
     restoreSizeFromState();
 
@@ -204,6 +206,8 @@ void OJDAudioProcessorEditor::constrainedResized()
         messageOkButton.setBounds (okBounds.reduced (proportionOfHeight (0.01f)));
         messageLearnMoreButton.setBounds (learnMoreBounds.reduced (proportionOfHeight (0.01f)));
     }
+
+    settingsButton.setBoundsRelative (0.9f, 0.91f, 0.08f, 0.12f);
 
     pedal.setBounds (pedalBounds);
 }
@@ -254,6 +258,20 @@ void OJDAudioProcessorEditor::setupAndAddMessageOfTheDayComponents()
 
         constrainedResized();
         repaint();
+    };
+}
+
+void OJDAudioProcessorEditor::setupAndAddSettingsPageComponents()
+{
+    addAndMakeVisible (settingsButton);
+
+    auto settingsIcon = juce::Drawable::createFromImageData (BinaryData::settingsoption_svg,
+                                                             BinaryData::settingsoption_svgSize);
+
+    settingsButton.setImages (settingsIcon.get());
+    settingsButton.onClick = [this]()
+    {
+        
     };
 }
 

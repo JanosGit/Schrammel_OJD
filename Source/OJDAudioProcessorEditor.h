@@ -124,6 +124,7 @@ public:
 private:
     void addPresetManager (OJDAudioProcessor& processorToControl);
     void setupAndAddMessageOfTheDayComponents();
+    void setupAndAddSettingsPageComponents();
 
     void checkMessageOfTheDay (OJDAudioProcessor& processor);
     void setMessage (const juce::String& text, const juce::URL url);
@@ -136,6 +137,7 @@ private:
     juce::TextEditor messageEditor;
     juce::TextButton messageOkButton;
     juce::TextButton messageLearnMoreButton;
+    juce::DrawableButton settingsButton;
 
     const std::unique_ptr<juce::Drawable> knobDrawable;
 
