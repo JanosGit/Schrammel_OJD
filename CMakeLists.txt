@@ -85,6 +85,7 @@ juce_generate_juce_header (OJD)
 
 # Adding all source files to the plugin target
 target_sources (OJD PRIVATE
+        Source/OJDPedalComponent.cpp
         Source/OJDAudioProcessorEditor.cpp
         Source/OJDProcessor.cpp
         Source/OJDParameters.cpp)
