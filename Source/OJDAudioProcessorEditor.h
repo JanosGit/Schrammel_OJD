@@ -129,11 +129,18 @@ private:
     void checkMessageOfTheDay (OJDAudioProcessor& processor);
     void setMessage (const juce::String& text, const juce::URL url);
 
+    enum class ActiveView
+    {
+        message,
+        pedal,
+        settings
+    };
+
     jb::SVGComponent background;
 
     OJDPedalComponent pedal;
 
-    bool isInMessageState;
+    ActiveView activeView;
     juce::TextEditor messageEditor;
     juce::TextButton messageOkButton;
     juce::TextButton messageLearnMoreButton;

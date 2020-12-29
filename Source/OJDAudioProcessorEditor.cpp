@@ -155,7 +155,7 @@ OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
  :  jb::PluginEditorBase<contentMinWidth, overallMinHeight> (proc, IsResizable::Yes, UseConstrainer::Yes),
     background       (BinaryData::background_svg, BinaryData::background_svgSize),
     pedal            (proc, *this),
-    isInMessageState (false),
+    activeView       (ActiveView::pedal),
     messageOkButton  ("OK"),
     messageLearnMoreButton ("Learn more"),
     settingsButton   ("Settings", juce::DrawableButton::ButtonStyle::ImageFitted),
@@ -190,10 +190,11 @@ void OJDAudioProcessorEditor::constrainedResized()
 
     auto pedalBounds = scaledKeepingCentre (contentBounds, 0.85f);
 
-    if (isInMessageState)
-    {
+    if (activeView != ActiveView::pedal)
         pedalBounds.translate (proportionOfWidth (0.8f), 0);
 
+    if (activeView == ActiveView::message)
+    {
         auto messageBounds = contentBounds.reduced (proportionOfHeight (0.05f));
 
         messageEditor.applyFontToAllText(getHeight() * 0.025f);
@@ -207,7 +208,7 @@ void OJDAudioProcessorEditor::constrainedResized()
         messageLearnMoreButton.setBounds (learnMoreBounds.reduced (proportionOfHeight (0.01f)));
     }
 
-    settingsButton.setBoundsRelative (0.9f, 0.91f, 0.08f, 0.12f);
+    settingsButton.setBoundsRelative (0.9f, 0.015f, 0.08f, 0.12f);
 
     pedal.setBounds (pedalBounds);
 }
@@ -250,7 +251,7 @@ void OJDAudioProcessorEditor::setupAndAddMessageOfTheDayComponents()
 
     messageOkButton.onClick = [this]()
     {
-        isInMessageState = false;
+        activeView = ActiveView::pedal;
 
         messageEditor.setVisible (false);
         messageOkButton.setVisible (false);
@@ -263,7 +264,7 @@ void OJDAudioProcessorEditor::setupAndAddMessageOfTheDayComponents()
 
 void OJDAudioProcessorEditor::setupAndAddSettingsPageComponents()
 {
-    addAndMakeVisible (settingsButton);
+    addAndMakeVisible(settingsButton);
 
     auto settingsIcon = juce::Drawable::createFromImageData (BinaryData::settingsoption_svg,
                                                              BinaryData::settingsoption_svgSize);
@@ -271,7 +272,10 @@ void OJDAudioProcessorEditor::setupAndAddSettingsPageComponents()
     settingsButton.setImages (settingsIcon.get());
     settingsButton.onClick = [this]()
     {
-        
+        activeView = (activeView == ActiveView::pedal) ? ActiveView::settings : ActiveView::pedal;
+
+        constrainedResized();
+        repaint();
     };
 }
 
@@ -330,7 +334,7 @@ void OJDAudioProcessorEditor::setMessage (const juce::String& text, const juce::
     messageOkButton.setVisible (true);
     messageLearnMoreButton.setVisible (true);
 
-    isInMessageState = true;
+    activeView = ActiveView::message;
 
     constrainedResized();
     repaint();
