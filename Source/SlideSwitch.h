@@ -22,8 +22,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 #pragma once
 #include <Resvg4JUCE/Resvg4JUCE.h>
 
-extern juce::Rectangle<int> scaledKeepingCentre (const juce::Rectangle<int>& src, float scale);
-
 /**
  * A slightly hacky class to paint the slide switches from the Adobe XD based GUI design draft.
  * Faced quite a lot of trouble rendering the layers correctly so I went with a mix of vector graphics
