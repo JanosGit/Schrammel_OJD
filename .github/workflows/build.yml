@@ -34,7 +34,7 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config ${{env.BUILD_TYPE}}
 
-    - name: Upload
+    - name: Upload artefacts
       uses: actions/upload-artifact@v2.2.1
       with:
         name: OJD-${{ matrix.os.name }}
@@ -49,10 +49,27 @@ jobs:
       runs-on: macos-10.15
       needs: build
       steps:
-        - name: Download macOS artifacts from build performed before
+        - name: Download macOS artefacts from build performed before
           uses: actions/download-artifact@v2
           with: 
             name: OJD-mac
 
-        - name: Did this work?
-          run: ls
+        - name: Setup temporary application signing keychain
+          uses: apple-actions/import-codesign-certs@v1
+          with: 
+            p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_APPLICATION }}
+            p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
+
+        - name: Codesign AU plugin
+          run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" AU/OJD.component --timestamp
+
+        - name: Codesign VST3 plugin
+          run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" VST3/OJD.vst3 --timestamp
+
+        - name: Upload artefacts
+          uses: actions/upload-artifact@v2.2.1
+          with:
+            name: OJD-mac-signed
+            path: |
+              AU
+              VST3
