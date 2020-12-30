@@ -21,6 +21,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 #pragma once
 
+#include "SettingsPage.h"
 #include "OJDPedalComponent.h"
 #include "OJDLookAndFeel.h"
 
@@ -54,6 +55,7 @@ private:
     jb::SVGComponent background;
 
     OJDPedalComponent pedal;
+    SettingsPage settingsPage;
 
     ActiveView activeView;
     juce::TextEditor messageEditor;

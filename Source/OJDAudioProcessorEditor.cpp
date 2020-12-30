@@ -61,6 +61,9 @@ void OJDAudioProcessorEditor::constrainedResized()
 
     auto pedalBounds = jb::scaledKeepingCentre (contentBounds, 0.85f);
 
+    settingsPage.setVisible (activeView == ActiveView::settings);
+    settingsPage.setBounds (pedalBounds);
+
     if (activeView != ActiveView::pedal)
         pedalBounds.translate (proportionOfWidth (0.8f), 0);
 
@@ -92,7 +95,7 @@ void OJDAudioProcessorEditor::checkBounds (juce::Rectangle<int>& bounds, const j
     bounds.setSize (contentWidth, contentHeight + presetManagerComponentHeight);
 }
 
-void OJDAudioProcessorEditor::paint(juce::Graphics &g)
+void OJDAudioProcessorEditor::paint (juce::Graphics &g)
 {
     g.fillAll (juce::Colours::white);
 }
@@ -148,6 +151,8 @@ void OJDAudioProcessorEditor::setupAndAddSettingsPageComponents()
         constrainedResized();
         repaint();
     };
+
+    addChildComponent (settingsPage);
 }
 
 void OJDAudioProcessorEditor::checkMessageOfTheDay (OJDAudioProcessor& proc)
