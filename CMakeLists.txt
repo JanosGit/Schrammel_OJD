@@ -40,11 +40,8 @@ add_subdirectory (Ext/JUCE)
 # Adding JSON
 set (JSON_BuildTests OFF CACHE INTERNAL "")
 set (JSON_Install OFF CACHE INTERNAL "")
-add_subdirectory (Ext/JBPluginBase/Ext/json)
+add_subdirectory (Ext/JBPluginBase)
 add_subdirectory (Ext/Resvg4JUCE)
-
-# Adding own modules
-juce_add_module (Ext/JBPluginBase/jb_plugin_base)
 
 # VST3 should be built on all platforms
 set (FormatsToBuild VST3)
@@ -82,6 +79,9 @@ target_compile_features (OJD PRIVATE cxx_std_14)
 
 # Using JUCE header as the original project was developed with Projucer - might be removed in future
 juce_generate_juce_header (OJD)
+
+# Gather some info regarding our git commit to inject them into a header file.
+jb_add_git_version_info (OJD)
 
 # Adding all source files to the plugin target
 target_sources (OJD PRIVATE
