@@ -1,6 +1,6 @@
-name: Build
+name: 👷‍♀️ Build, sign and create installers
 
-on: [pull_request]
+on: [push, pull_request]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -9,12 +9,13 @@ env:
 
 jobs:
   build:
+    name: 🛠 🍎 📺 Build for macOS & Windows
     runs-on: ${{ matrix.os.runner }}
     
     strategy:
       matrix:
         os:
-        - runner: macos-latest
+        - runner: macos-10.15
           name: mac
         - runner: windows-latest
           name: windows
@@ -41,3 +42,17 @@ jobs:
               ${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}
               !${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}/**/*.a
               !${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}/**/*.lib
+
+
+  codesign_and_installer_mac:
+      name: 📦 🍎 Sign Artefacts and Build Installer for macOS
+      runs-on: macos-10.15
+      needs: build
+      steps:
+        - name: Download macOS artifacts from build performed before
+          uses: actions/download-artifact@v2
+          with: 
+            name: OJD-mac
+
+        - name: Did this work?
+          run: ls
