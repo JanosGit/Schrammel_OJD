@@ -8,21 +8,6 @@ env:
   
 
 jobs:
-  pkg:
-    name: packages tests
-    runs-on: macos-10.15
-    steps:
-    - name: Download Packages
-      run: wget http://s.sudre.free.fr/Software/files/Packages.dmg
-
-    - name: Mount Packages image
-      run: hdiutil attach Packages.dmg
-
-    - name: Install Packages
-      run: sudo installer -pkg /Volumes/Packages\ 1.2.9/Install\ Packages.pkg -target /
-
-    - name: Check if packagesbuild is available
-      run: which packagesbuild
 
   build:
     name: 🛠 🍎 📺 Build for macOS & Windows
@@ -43,21 +28,27 @@ jobs:
 
     # We are creating the ${{runner.workspace}}/build directory to perform the build
     - name: Configure CMake
-      working-directory: ${{runner.workspace}}
-      run: cmake -S Schrammel_OJD -B ${{runner.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      working-directory: ${{ runner.workspace }}
+      run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
 
     - name: Build
-      working-directory: ${{runner.workspace}}/build
-      run: cmake --build . --config ${{env.BUILD_TYPE}}
+      working-directory: ${{ runner.workspace }}/build
+      run: cmake --build . --config ${{ env.BUILD_TYPE }}
 
-    - name: Upload artefacts
+    - name: Upload build artefacts
       uses: actions/upload-artifact@v2.2.1
       with:
         name: OJD-${{ matrix.os.name }}
         path: |
-              ${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}
-              !${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}/**/*.a
-              !${{runner.workspace}}/build/OJD_artefacts/${{env.BUILD_TYPE}}/**/*.lib
+              ${{ runner.workspace }}/build/OJD_artefacts/${{ env.BUILD_TYPE }}
+              !${{ runner.workspace }}/build/OJD_artefacts/${{ env.BUILD_TYPE }}/**/*.a
+              !${{ runner.workspace }}/build/OJD_artefacts/${{ env.BUILD_TYPE }}/**/*.lib
+
+    - name: Upload installer files
+      uses: actions/upload-artifact@v2.2.1
+      with:
+        name: InstallerFiles-${{ matrix.os.name }}
+        path: Schrammel_OJD/Deployment/${{ matrix.os.name }}
 
 
   codesign_and_installer_mac:
@@ -65,7 +56,7 @@ jobs:
       runs-on: macos-10.15
       needs: build
       steps:
-        - name: Download macOS artefacts from build performed before
+        - name: Download macOS build artefacts from previous job
           uses: actions/download-artifact@v2
           with: 
             name: OJD-mac
@@ -89,3 +80,29 @@ jobs:
             path: |
               AU
               VST3
+
+        - name: Download Packages
+          run: wget http://s.sudre.free.fr/Software/files/Packages.dmg
+
+        - name: Mount Packages image
+          run: hdiutil attach Packages.dmg
+
+        - name: Install Packages
+          run: sudo installer -pkg /Volumes/Packages\ 1.2.9/Install\ Packages.pkg -target /
+
+        - name: Setup temporary installer signing keychain
+          uses: apple-actions/import-codesign-certs@v1
+          with: 
+            p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_INSTALLER }}
+            p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
+
+        - name: Download installer files from previous job
+          uses: actions/download-artifact@v2
+          with: 
+            name: InstallerFiles-mac
+
+        - name: Build Installer
+          run: packagesbuild --verbose --identity "${{ secrets.APPLE_DEVELOPER_ID_INSTALLER }}" Schrammel\ OJD.pkgproj
+
+        - name: What did we produce?
+          run: ls
