@@ -48,11 +48,11 @@ jobs:
       uses: actions/upload-artifact@v2.2.1
       with:
         name: InstallerFiles-${{ matrix.os.name }}
-        path: Schrammel_OJD/Deployment/${{ matrix.os.name }}
+        path: ${{ runner.workspace }}/Schrammel_OJD/Deployment/${{ matrix.os.name }}
 
 
-  codesign_and_installer_mac:
-      name: 📦 🍎 Sign Artefacts and Build Installer for macOS
+  codesign_mac:
+      name: 🔏 🍎 Sign Artefacts for macOS
       runs-on: macos-10.15
       needs: build
       steps:
@@ -81,6 +81,22 @@ jobs:
               AU
               VST3
 
+
+  installer_mac:
+      name: 📦 🍎 Build installer for macOS
+      runs-on: macos-10.15
+      needs: codesign_mac
+      steps:
+        - name: Download signed macOS build artefacts from previous job
+          uses: actions/download-artifact@v2
+          with: 
+            name: OJD-mac-signed
+
+        - name: Download installer files
+          uses: actions/download-artifact@v2
+          with: 
+            name: InstallerFiles-mac
+        
         - name: Download Packages
           run: wget http://s.sudre.free.fr/Software/files/Packages.dmg
 
@@ -95,11 +111,6 @@ jobs:
           with: 
             p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_INSTALLER }}
             p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
-
-        - name: Download installer files from previous job
-          uses: actions/download-artifact@v2
-          with: 
-            name: InstallerFiles-mac
 
         - name: Build Installer
           run: packagesbuild --verbose --identity "${{ secrets.APPLE_DEVELOPER_ID_INSTALLER }}" Schrammel\ OJD.pkgproj
