@@ -1228,9 +1228,9 @@
 						<key>VALUE</key>
 						<dict>
 							<key>PATH</key>
-							<string>../Texts/Intro.txt</string>
+							<string>Texts/Intro.txt</string>
 							<key>PATH_TYPE</key>
-							<integer>1</integer>
+							<integer>3</integer>
 						</dict>
 					</dict>
 				</array>
@@ -1238,7 +1238,19 @@
 			<key>LICENSE</key>
 			<dict>
 				<key>LOCALIZATIONS</key>
-				<array/>
+				<array>
+					<dict>
+						<key>LANGUAGE</key>
+						<string>English</string>
+						<key>VALUE</key>
+						<dict>
+							<key>PATH</key>
+							<string>Texts/License.txt</string>
+							<key>PATH_TYPE</key>
+							<integer>3</integer>
+						</dict>
+					</dict>
+				</array>
 				<key>MODE</key>
 				<integer>0</integer>
 			</dict>
