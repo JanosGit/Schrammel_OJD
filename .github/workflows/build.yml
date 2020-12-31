@@ -8,6 +8,22 @@ env:
   
 
 jobs:
+  pkg:
+    name: packages tests
+    runs-on: macos-10.15
+    steps:
+    - name: Download Packages
+      run: wget http://s.sudre.free.fr/Software/files/Packages.dmg
+
+    - name: Mount Packages image
+      run: hdiutil attach Packages.dmg
+
+    - name: Install Packages
+      run: sudo installer -pkg /Volumes/Packages\ 1.2.9/Install\ Packages.pkg -target /
+
+    - name: Check if packagesbuild is available
+      run: which packagesbuild
+
   build:
     name: 🛠 🍎 📺 Build for macOS & Windows
     runs-on: ${{ matrix.os.runner }}
