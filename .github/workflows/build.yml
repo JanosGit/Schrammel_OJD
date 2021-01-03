@@ -113,7 +113,13 @@ jobs:
             p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
 
         - name: Build Installer
-          run: packagesbuild --verbose --identity "${{ secrets.APPLE_DEVELOPER_ID_INSTALLER }}" Schrammel\ OJD.pkgproj
+          run: packagesbuild --verbose Schrammel\ OJD.pkgproj
 
         - name: What did we produce?
+          run: ls
+
+        - name: Sign Installer
+          run: productsign --sign "${{ secrets.APPLE_DEVELOPER_ID_INSTALLER }}" OJD/Schrammel\ OJD.pkg Install\ OJD.pkg
+          
+        - name: What did we produce again?
           run: ls
