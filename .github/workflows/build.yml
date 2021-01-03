@@ -113,13 +113,25 @@ jobs:
             p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
 
         - name: Build Installer
-          run: packagesbuild --verbose Schrammel\ OJD.pkgproj
+          run: packagesbuild Schrammel\ OJD.pkgproj
 
-        - name: What did we produce?
-          run: ls
+        - name: Create folder for signed installer
+          run: mkdir OJD-Signed
 
         - name: Sign Installer
-          run: productsign --sign "${{ secrets.APPLE_DEVELOPER_ID_INSTALLER }}" OJD/Schrammel\ OJD.pkg Install\ OJD.pkg
+          run: productsign -s "${{ secrets.APPLE_DEVELOPER_ID_INSTALLER }}" OJD/Schrammel\ OJD.pkg OJD-Signed/Install\ OJD.pkg
           
-        - name: What did we produce again?
-          run: ls
+        - name: Notarize Installer
+          run: npx notarize-cli --file "OJD-Signed/Install\ OJD.pkg"
+          env:
+            NOTARIZE_USERNAME: ${{ secrets.APPLE_ID }}
+            NOTARIZE_PASSWORD: ${{ secrets.APPLE_NOTARIZATION_PW }}
+
+        - name: Create DMG
+          run: hdiutil create Install\ OJD.dmg -fs HFS+ -srcfolder OJD-Signed -format UDZO -volname Install\ OJD
+
+        - name: Upload DMG
+          uses: actions/upload-artifact@v2.2.1
+          with:
+            name: OJD-mac-installer
+            path: Install\ OJD.dmg
