@@ -1288,7 +1288,7 @@
 			<key>BUILD_PATH</key>
 			<dict>
 				<key>PATH</key>
-				<string>OJD</string>
+				<string>OJD-installer</string>
 				<key>PATH_TYPE</key>
 				<integer>3</integer>
 			</dict>

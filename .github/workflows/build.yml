@@ -9,8 +9,9 @@ env:
 
 jobs:
 
-  # The Matrix job for the compilation itself, executed on all supported OS
-  build:
+  # The Matrix job for the compilation itself, executed on all supported OS.
+  # Additionally performs codesigning on macOS builds
+  build_plugin:
     name: 🛠 🍎 📺 Build for macOS & Windows
     runs-on: ${{ matrix.os.runner }}
     
@@ -36,6 +37,25 @@ jobs:
       working-directory: ${{ runner.workspace }}/build
       run: cmake --build . --config ${{ env.BUILD_TYPE }}
 
+    # Start of macOS only codesigning step ==========================================================
+    - name: Setup temporary keychain and add application signing certificate
+      uses: apple-actions/import-codesign-certs@v1
+      with: 
+        p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_APPLICATION }}
+        p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
+      if: runner.os == 'macOS'
+
+    - name: Codesign AU plugin
+      working-directory: ${{ runner.workspace }}/build/OJD_artefacts/${{ env.BUILD_TYPE }}/AU
+      run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.component --timestamp
+      if: runner.os == 'macOS'
+
+    - name: Codesign VST3 plugin
+      working-directory: ${{ runner.workspace }}/build/OJD_artefacts/${{ env.BUILD_TYPE }}/VST3
+      run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.vst3 --timestamp
+      if: runner.os == 'macOS'
+    # End of macOS only codesigning step ===========================================================
+
     - name: Upload build artefacts and installer support files
       uses: actions/upload-artifact@v2.2.1
       with:
@@ -52,12 +72,10 @@ jobs:
         path: ${{ runner.workspace }}/Schrammel_OJD/Deployment/${{ matrix.os.name }}
 
 
-
-  # The frist macOS specific deployment task that signs the plugins and builds the installer
-  codesign_installer_mac:
-      name: 📦 🍎 Build installer for macOS
+  build_installer_mac:
+      name: 📦 🍎 Build, sign and notarize installer for macOS
       runs-on: macos-10.15
-      needs: build
+      needs: build_plugin
       steps:
         - name: Download macOS build artefacts from previous job
           uses: actions/download-artifact@v2
@@ -68,30 +86,7 @@ jobs:
           uses: actions/download-artifact@v2
           with: 
             name: OJD-installer-files-mac
-
-        - name: What did we download?
-          run: ls
-          
-        - name: Setup temporary keychain and add application signing certificate
-          uses: apple-actions/import-codesign-certs@v1
-          with: 
-            p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_APPLICATION }}
-            p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
-
-        - name: Codesign AU plugin
-          run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" AU/OJD.component --timestamp
-
-        - name: Codesign VST3 plugin
-          run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" VST3/OJD.vst3 --timestamp
-
-        - name: Upload signed artefacts
-          uses: actions/upload-artifact@v2.2.1
-          with:
-            name: OJD-signed-mac
-            path: |
-              AU
-              VST3
-
+            
         - name: Download Packages installer build tool
           run: wget http://s.sudre.free.fr/Software/files/Packages.dmg
 
@@ -103,23 +98,6 @@ jobs:
 
         - name: Build installer
           run: packagesbuild Schrammel\ OJD.pkgproj
-        
-        - name: Upload installer
-          uses: actions/upload-artifact@v2.2.1
-          with:
-            name: OJD-installer-unsigned-mac
-            path: OJD/Schrammel\ OJD.pkg
-
-  # The second macOS specific deployment task that signs and notarizes the installer and creates a dmg
-  productsign_notarize_mac:
-      name: 🔏 🍎 Sign and notarize installer for macOS
-      runs-on: macos-10.15
-      needs: codesign_installer_mac
-      steps:
-        - name: Download macOS build artefacts from previous job
-          uses: actions/download-artifact@v2
-          with: 
-            name: OJD-installer-unsigned-mac
 
         - name: Setup temporary keychain and add installer signing certificate
           uses: apple-actions/import-codesign-certs@v1
@@ -131,7 +109,7 @@ jobs:
           run: mkdir OJD-installer-signed
 
         - name: Sign installer
-          run: productsign -s "${{ secrets.APPLE_DEVELOPER_ID_INSTALLER }}" Schrammel\ OJD.pkg OJD-installer-signed/Install\ OJD.pkg
+          run: productsign -s "${{ secrets.APPLE_DEVELOPER_ID_INSTALLER }}" OJD-installer/Schrammel\ OJD.pkg OJD-installer-signed/Install\ OJD.pkg
           
         - name: Notarize installer
           run: npx notarize-cli --file OJD-installer-signed/Install\ OJD.pkg --bundle-id io.schrammel.pkg --username ${{ secrets.APPLE_ID }} --password ${{ secrets.APPLE_NOTARIZATION_PW }}
@@ -145,15 +123,29 @@ jobs:
             name: OJD-installer-mac
             path: Install\ OJD.dmg
 
-  # A side job to delete intermediate artefacts from the run
-  delete_temporary_artefacts:
-      name: 🧹 Cleanup intermediate artefacts
-      runs-on: ubuntu-latest
-      needs: codesign_installer_mac
-      steps:
-        - name: Cleanup
+        - name: Cleanup installer files
           uses: geekyeggo/delete-artifact@v1
           with:
-            name: |
-                OJD-build-output-mac
-                OJD-installer-files-mac
+            name: OJD-installer-files-mac
+
+  build_installer_windows:
+      name: 📦 📺 Build installer for Windows
+      runs-on: windows-latest
+      needs: build_plugin
+      steps:
+        - name: Download macOS build artefacts from previous job
+          uses: actions/download-artifact@v2
+          with: 
+            name: OJD-build-output-windows
+
+        - name: Download macOS installer files
+          uses: actions/download-artifact@v2
+          with: 
+            name: OJD-installer-files-windows      
+
+        # Todo: Add actual windows installer build process here
+
+        - name: Cleanup installer files
+          uses: geekyeggo/delete-artifact@v1
+          with:
+            name: OJD-installer-files-windows  
