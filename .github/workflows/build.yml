@@ -5,7 +5,7 @@ on: [push, pull_request]
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: RelWithDebInfo
-  
+
 
 jobs:
 
@@ -65,16 +65,23 @@ jobs:
               !${{ runner.workspace }}/build/OJD_artefacts/${{ env.BUILD_TYPE }}/**/*.a
               !${{ runner.workspace }}/build/OJD_artefacts/${{ env.BUILD_TYPE }}/**/*.lib
 
+            
+# =================================================================================================
+# The installer-relevant steps below are only executed on develop and master but not on feature-branches 
+# =================================================================================================
+
     - name: Upload installer support files
       uses: actions/upload-artifact@v2.2.1
       with:
         name: OJD-installer-files-${{ matrix.os.name }}
         path: ${{ runner.workspace }}/Schrammel_OJD/Deployment/${{ matrix.os.name }}
+      if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
 
 
   build_installer_mac:
       name: 📦 🍎 Build, sign and notarize installer for macOS
       runs-on: macos-10.15
+      if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
       needs: build_plugin
       steps:
         - name: Download macOS build artefacts from previous job
@@ -131,6 +138,7 @@ jobs:
   build_installer_windows:
       name: 📦 📺 Build installer for Windows
       runs-on: windows-latest
+      if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
       needs: build_plugin
       steps:
         - name: Download macOS build artefacts from previous job
