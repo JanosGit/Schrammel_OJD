@@ -79,9 +79,9 @@
 															<key>GID</key>
 															<integer>0</integer>
 															<key>PATH</key>
-															<string>Bin/AU/OJD.component</string>
+															<string>AU/OJD.component</string>
 															<key>PATH_TYPE</key>
-															<integer>1</integer>
+															<integer>3</integer>
 															<key>PERMISSIONS</key>
 															<integer>493</integer>
 															<key>TYPE</key>
@@ -514,7 +514,7 @@
 				<key>AUTHENTICATION</key>
 				<integer>1</integer>
 				<key>CONCLUSION_ACTION</key>
-				<integer>2</integer>
+				<integer>0</integer>
 				<key>FOLLOW_SYMBOLIC_LINKS</key>
 				<false/>
 				<key>IDENTIFIER</key>
@@ -616,9 +616,9 @@
 															<key>GID</key>
 															<integer>0</integer>
 															<key>PATH</key>
-															<string>Bin/VST3/OJD.vst3</string>
+															<string>VST3/OJD.vst3</string>
 															<key>PATH_TYPE</key>
-															<integer>1</integer>
+															<integer>3</integer>
 															<key>PERMISSIONS</key>
 															<integer>493</integer>
 															<key>TYPE</key>
@@ -1228,9 +1228,9 @@
 						<key>VALUE</key>
 						<dict>
 							<key>PATH</key>
-							<string>../Texts/Intro.txt</string>
+							<string>Texts/Intro.txt</string>
 							<key>PATH_TYPE</key>
-							<integer>1</integer>
+							<integer>3</integer>
 						</dict>
 					</dict>
 				</array>
@@ -1238,7 +1238,19 @@
 			<key>LICENSE</key>
 			<dict>
 				<key>LOCALIZATIONS</key>
-				<array/>
+				<array>
+					<dict>
+						<key>LANGUAGE</key>
+						<string>English</string>
+						<key>VALUE</key>
+						<dict>
+							<key>PATH</key>
+							<string>Texts/License.txt</string>
+							<key>PATH_TYPE</key>
+							<integer>3</integer>
+						</dict>
+					</dict>
+				</array>
 				<key>MODE</key>
 				<integer>0</integer>
 			</dict>
@@ -1276,9 +1288,9 @@
 			<key>BUILD_PATH</key>
 			<dict>
 				<key>PATH</key>
-				<string>OJD</string>
+				<string>OJD-installer</string>
 				<key>PATH_TYPE</key>
-				<integer>1</integer>
+				<integer>3</integer>
 			</dict>
 			<key>EXCLUDED_FILES</key>
 			<array>

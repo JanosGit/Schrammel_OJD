@@ -30,3 +30,5 @@ cmake_install.cmake
 .vs/
 
 out/
+
+cmake-build/

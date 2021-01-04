@@ -122,8 +122,3 @@ target_link_libraries (OJD PRIVATE
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
         juce::juce_recommended_config_flags)
-
-# The Deployment subdirectory contains its own CMakeLists that creates a CPack based installer
-if (CREATE_INSTALLER)
-    add_subdirectory (Deployment)
-endif()
