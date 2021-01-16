@@ -162,7 +162,7 @@ jobs:
           run: iscc "OJD Installer.iss"
 
         - name: What did we produce?
-          working-dir: Output
+          working-directory: Output
           run: dir
 
         - name: Upload installer
