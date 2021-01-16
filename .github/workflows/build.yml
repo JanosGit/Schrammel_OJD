@@ -75,7 +75,7 @@ jobs:
       with:
         name: OJD-installer-files-${{ matrix.os.name }}
         path: ${{ runner.workspace }}/Schrammel_OJD/Deployment/${{ matrix.os.name }}
-      if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
+      #if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
 
 
   build_installer_mac:
@@ -138,20 +138,38 @@ jobs:
   build_installer_windows:
       name: 📦 📺 Build installer for Windows
       runs-on: windows-latest
-      if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
+      #if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
       needs: build_plugin
       steps:
-        - name: Download macOS build artefacts from previous job
+        - name: Download Windows build artefacts from previous job
           uses: actions/download-artifact@v2
           with: 
             name: OJD-build-output-windows
 
-        - name: Download macOS installer files
+        - name: Download Windows installer files
           uses: actions/download-artifact@v2
           with: 
-            name: OJD-installer-files-windows      
+            name: OJD-installer-files-windows    
 
-        # Todo: Add actual windows installer build process here
+        - name: Download Visual C++ redistributable
+          run: Invoke-WebRequest https://aka.ms/vs/16/release/vc_redist.x64.exe -O vc_redist.x64.exe
+          shell: powershell  
+
+        - name: What did we download?
+          run: dir
+
+        - name: Build installer
+          run: iscc "OJD Installer.iss"
+
+        - name: What did we produce?
+          working-dir: Output
+          run: dir
+
+        - name: Upload installer
+          uses: actions/upload-artifact@v2.2.1
+          with:
+            name: OJD-installer-windows
+            path: "Output/Install OJD.exe"
 
         - name: Cleanup installer files
           uses: geekyeggo/delete-artifact@v1
