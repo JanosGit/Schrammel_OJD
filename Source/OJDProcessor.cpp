@@ -50,9 +50,8 @@ void OJDAudioProcessor::prepareResources (bool sampleRateChanged, bool maxBlockS
 {
     if (numChannelsChanged)
     {
-        jassert (getTotalNumOutputChannels() == numChannels);
-        jassert (getTotalNumInputChannels()  == numChannels);
-        return;
+        jassert (getTotalNumOutputChannels() == getTotalNumInputChannels());
+        numChannels = getTotalNumInputChannels();
     }
 
     juce::ignoreUnused (sampleRateChanged, maxBlockSizeChanged);
@@ -63,8 +62,8 @@ void OJDAudioProcessor::prepareResources (bool sampleRateChanged, bool maxBlockS
     recalculateFilters();
 
     // Some fixed coefficients
-    *chain.get<hpf30>()  .coefficients = *BiquadCoeffs::makeFirstOrderHighPass (spec.sampleRate, 30.0f);
-    *chain.get<lpf6_3k>().coefficients = *BiquadCoeffs::makeFirstOrderLowPass  (spec.sampleRate, 6.3e3f);
+    *chain.get<hpf30>()  .state = *BiquadCoeffs::makeFirstOrderHighPass (spec.sampleRate, 30.0f);
+    *chain.get<lpf6_3k>().state = *BiquadCoeffs::makeFirstOrderLowPass  (spec.sampleRate, 6.3e3f);
 
     // Computing the chains latency. The oversampling in the waveshaper might introduce fractional sample delay
     const auto waveshaperLatency = chain.get<waveshaper>().getLatencyInSamples();
@@ -74,8 +73,12 @@ void OJDAudioProcessor::prepareResources (bool sampleRateChanged, bool maxBlockS
 
 bool OJDAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-    auto mono = juce::AudioChannelSet::mono();
-    return layouts.getMainInputChannelSet() == mono && layouts.getMainOutputChannelSet() == mono;
+    auto mono   = juce::AudioChannelSet::mono();
+    auto stereo = juce::AudioChannelSet::stereo();
+
+    // We are supporting mono -> mono or stereo -> stereo setups
+    return (layouts.getMainInputChannelSet() == mono   && layouts.getMainOutputChannelSet() == mono) ||
+           (layouts.getMainInputChannelSet() == stereo && layouts.getMainOutputChannelSet() == stereo) ;
 }
 
 void OJDAudioProcessor::processBlock (juce::dsp::AudioBlock<float>& block)
@@ -119,11 +122,11 @@ void OJDAudioProcessor::updateParametersForProcessorChain()
     // Drive – coefficients are computed in the parameterChanged callback, therefore we need the lock
     if (biquadParametersUpdated.load() && biquadParameterLock.tryEnter())
     {
-        std::swap (chain.get<biquadPreDriveBoost>().coefficients,   biquadPreDriveBoostCoeffs);
-        std::swap (chain.get<biquadPreDriveNotch>().coefficients,   biquadPreDriveNotchCoeffs);
-        std::swap (chain.get<biquadPostDriveBoost1>().coefficients, biquadPostDriveBoost1Coeffs);
-        std::swap (chain.get<biquadPostDriveBoost2>().coefficients, biquadPostDriveBoost2Coeffs);
-        std::swap (chain.get<biquadPostDriveBoost3>().coefficients, biquadPostDriveBoost3Coeffs);
+        *chain.get<biquadPreDriveBoost>().state   = *biquadPreDriveBoostCoeffs;
+        *chain.get<biquadPreDriveNotch>().state   = *biquadPreDriveNotchCoeffs;
+        *chain.get<biquadPostDriveBoost1>().state = *biquadPostDriveBoost1Coeffs;
+        *chain.get<biquadPostDriveBoost2>().state = *biquadPostDriveBoost2Coeffs;
+        *chain.get<biquadPostDriveBoost3>().state = *biquadPostDriveBoost3Coeffs;
 
         biquadParametersUpdated.store (false);
         biquadParameterLock.exit();

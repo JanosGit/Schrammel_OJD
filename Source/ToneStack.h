@@ -32,21 +32,24 @@ public:
         lp
     };
 
-    ToneStack() {}
+    ToneStack() = default;
 
     void prepare (const juce::dsp::ProcessSpec& spec) override
     {
         hpfTempBuffer.setSize (static_cast<int> (spec.numChannels), static_cast<int> (spec.maximumBlockSize));
         hpfTempBlock = std::make_unique<juce::dsp::AudioBlock<float>> (hpfTempBuffer);
 
-        const auto hpModeFreq = 358.0f;
-        const auto lpModeFreq = 160.0f;
+        constexpr auto hpModeFreq = 358.0f;
+        constexpr auto lpModeFreq = 160.0f;
 
         hpfCoeffsHPMode = juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass (spec.sampleRate, hpModeFreq);
         hpfCoeffsLPMode = juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass (spec.sampleRate, lpModeFreq);
 
         lpfCoeffsHPMode = juce::dsp::IIR::Coefficients<float>::makeFirstOrderLowPass (spec.sampleRate, hpModeFreq);
         lpfCoeffsLPMode = juce::dsp::IIR::Coefficients<float>::makeFirstOrderLowPass (spec.sampleRate, lpModeFreq);
+
+        hpf.prepare (spec);
+        lpf.prepare (spec);
     }
 
     void process (const juce::dsp::ProcessContextReplacing<float>& context) override
@@ -76,8 +79,8 @@ public:
         {
             currentMode = newMode;
 
-            hpf.coefficients = newMode == hp ? hpfCoeffsHPMode : hpfCoeffsLPMode;
-            lpf.coefficients = newMode == hp ? lpfCoeffsHPMode : lpfCoeffsLPMode;
+            *hpf.state = newMode == hp ? *hpfCoeffsHPMode : *hpfCoeffsLPMode;
+            *lpf.state = newMode == hp ? *lpfCoeffsHPMode : *lpfCoeffsLPMode;
         }
     }
 
@@ -85,9 +88,9 @@ public:
     void setTone (float newTone)    { tone = newTone; }
 
 private:
-    Mode currentMode;
+    Mode currentMode = lp;
 
-    juce::dsp::IIR::Filter<float> hpf, lpf;
+    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> hpf, lpf;
 
     juce::dsp::IIR::Coefficients<float>::Ptr hpfCoeffsHPMode, hpfCoeffsLPMode;
     juce::dsp::IIR::Coefficients<float>::Ptr lpfCoeffsHPMode, lpfCoeffsLPMode;

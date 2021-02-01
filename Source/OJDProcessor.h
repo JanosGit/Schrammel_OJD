@@ -52,9 +52,9 @@ public:
      */
     std::unique_ptr<jb::MessageOfTheDay::InfoAndUpdate> getMessageOfTheDay (int timeoutMilliseconds);
 
-    /** This processor will only process one channel */
-    static const int numChannels = 1;
 private:
+    int numChannels = 1;
+
     // References to all raw parameter values
     const std::atomic<float>& rawValueDrive;
     const std::atomic<float>& rawValueTone;
@@ -77,9 +77,9 @@ private:
         volume
     };
 
-    using HPF    = juce::dsp::IIR::Filter<float>;
-    using LPF    = juce::dsp::IIR::Filter<float>;
-    using Biquad = juce::dsp::IIR::Filter<float>;
+    using HPF    = juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>;
+    using LPF    = juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>;
+    using Biquad = juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>;
     using Gain   = juce::dsp::Gain<float>;
 
     juce::dsp::ProcessorChain<HPF, Biquad, Biquad, Gain, Waveshaper, Biquad, Biquad, Biquad, LPF, ToneStack, Gain> chain;
