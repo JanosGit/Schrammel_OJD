@@ -90,8 +90,8 @@ target_sources (OJD PRIVATE
         Source/OJDProcessor.cpp
         Source/OJDParameters.cpp)
 
-# The subdirectory contains its own CMakeLists that creates a BinaryData target containing all SVGs
-add_subdirectory (BinaryResources/SVGs)
+# The subdirectory contains its own CMakeLists that creates BinaryData targets containing graphics and fonts
+add_subdirectory (BinaryResources)
 
 target_compile_definitions (OJD
         PUBLIC
@@ -116,7 +116,7 @@ target_link_libraries (OJD PRIVATE
         nlohmann_json::nlohmann_json
 
         # Binary Data
-        EmbeddedSVGs
+        EmbeddedBinaryData
 
         # Recommended flags
         juce::juce_recommended_lto_flags
