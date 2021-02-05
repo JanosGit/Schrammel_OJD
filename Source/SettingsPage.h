@@ -38,6 +38,10 @@ public:
         commitInfoLabel.setText (commitInfo, juce::dontSendNotification);
         buildDateLabel.setText (buildDate, juce::dontSendNotification);
 
+        versionInfoLabel.setMinimumHorizontalScale (1.0f);
+        commitInfoLabel.setMinimumHorizontalScale (1.0f);
+        buildDateLabel.setMinimumHorizontalScale (1.0f);
+
         addAndMakeVisible (versionInfoLabel);
         addAndMakeVisible (commitInfoLabel);
         addAndMakeVisible (buildDateLabel);
@@ -46,14 +50,21 @@ public:
 
     void resized() override
     {
-        versionInfoLabel.setBoundsRelative (0.1f, 0.3f, 0.8f, 0.05f);
-        commitInfoLabel.setBoundsRelative (0.1f, 0.35f, 0.8f, 0.05f);
-        buildDateLabel.setBoundsRelative (0.1f, 0.4f, 0.8f, 0.05f);
+        fontHeight = getHeight() * 0.03f;
+
+        versionInfoLabel.setFont (versionInfoLabel.getFont().withHeight (fontHeight));
+        commitInfoLabel.setFont  (commitInfoLabel.getFont().withHeight (fontHeight));
+        buildDateLabel.setFont   (buildDateLabel.getFont().withHeight (fontHeight));
+
+        versionInfoLabel.setBoundsRelative (0.1f, 0.3f,  0.8f, 0.05f);
+        commitInfoLabel.setBoundsRelative  (0.1f, 0.35f, 0.8f, 0.05f);
+        buildDateLabel.setBoundsRelative   (0.1f, 0.4f,  0.8f, 0.05f);
     }
 
     void paint (juce::Graphics& g) override
     {
         g.fillAll (juce::Colours::grey.withAlpha (0.25f));
+        g.setFont (fontHeight);
 
         g.setColour (juce::Colours::white);
         g.drawHorizontalLine (proportionOfHeight (0.2f), 0.0f, static_cast<float> (getWidth()));
@@ -72,6 +83,8 @@ public:
     }
 
 private:
+    float fontHeight = 1.0f;
+
     juce::Label versionInfoLabel;
     juce::Label commitInfoLabel;
     juce::Label buildDateLabel;
