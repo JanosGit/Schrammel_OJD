@@ -27,16 +27,20 @@ class SettingsPage : public juce::Component
 {
 public:
     SettingsPage()
+      : housingBackside (BinaryData::backside_svg, BinaryData::backside_svgSize)
     {
-        auto versionInfo = "Version number: " + juce::String (ProjectInfo::versionString);
-        auto commitInfo = "Git commit: " + juce::String (ProjectInfo::Git::commit);
-        if (! ProjectInfo::Git::branch.empty())
-            commitInfo += juce::String (", Branch ") + ProjectInfo::Git::branch;
+        addAndMakeVisible (housingBackside);
+        auto versionInfo = "Version: " + juce::String (ProjectInfo::versionString);
+        auto commitInfo = "Git Commit: " + juce::String (ProjectInfo::Git::commit) + getBranchName();
         auto buildDate = "Build date: " + juce::Time::getCompilationDate().toString(true, true, false);
 
         versionInfoLabel.setText (versionInfo, juce::dontSendNotification);
         commitInfoLabel.setText (commitInfo, juce::dontSendNotification);
         buildDateLabel.setText (buildDate, juce::dontSendNotification);
+
+        versionInfoLabel.setMinimumHorizontalScale (1.0f);
+        commitInfoLabel.setMinimumHorizontalScale (1.0f);
+        buildDateLabel.setMinimumHorizontalScale (1.0f);
 
         addAndMakeVisible (versionInfoLabel);
         addAndMakeVisible (commitInfoLabel);
@@ -46,33 +50,41 @@ public:
 
     void resized() override
     {
-        versionInfoLabel.setBoundsRelative (0.1f, 0.3f, 0.8f, 0.05f);
-        commitInfoLabel.setBoundsRelative (0.1f, 0.35f, 0.8f, 0.05f);
-        buildDateLabel.setBoundsRelative (0.1f, 0.4f, 0.8f, 0.05f);
-    }
+        auto bounds = getLocalBounds();
 
-    void paint (juce::Graphics& g) override
-    {
-        g.fillAll (juce::Colours::grey.withAlpha (0.25f));
+        auto hb = jb::scaledKeepingCentre (bounds, 0.94f);
+        housingBackside.setBounds (hb);
 
-        g.setColour (juce::Colours::white);
-        g.drawHorizontalLine (proportionOfHeight (0.2f), 0.0f, static_cast<float> (getWidth()));
-        g.drawText ("Version Information", proportionOfWidth (0.1f),
-                                           proportionOfHeight (0.21f),
-                                           versionInfoLabel.getWidth(),
-                                           proportionOfHeight(0.5f),
-                                           juce::Justification::topLeft);
+        fontHeight = static_cast<float> (getHeight ()) * 0.02f;
 
-        g.drawHorizontalLine (proportionOfHeight (0.6f), 0.0f, static_cast<float> (getWidth()));
-        g.drawText ("Settings", proportionOfWidth (0.1f),
-                                proportionOfHeight (0.61f),
-                                versionInfoLabel.getWidth(),
-                                proportionOfHeight(0.5f),
-                                juce::Justification::topLeft);
+        versionInfoLabel.setFont (versionInfoLabel.getFont().withHeight (fontHeight));
+        commitInfoLabel.setFont  (commitInfoLabel.getFont().withHeight (fontHeight));
+        buildDateLabel.setFont   (buildDateLabel.getFont().withHeight (fontHeight));
+
+        versionInfoLabel.setBoundsRelative (0.2f, 0.73f, 0.8f, 0.05f);
+        commitInfoLabel.setBoundsRelative  (0.2f, 0.78f, 0.8f, 0.05f);
+        buildDateLabel.setBoundsRelative   (0.2f, 0.83f, 0.8f, 0.05f);
     }
 
 private:
+    float fontHeight = 1.0f;
+
     juce::Label versionInfoLabel;
     juce::Label commitInfoLabel;
     juce::Label buildDateLabel;
+
+    jb::SVGComponent housingBackside;
+
+    static juce::String getBranchName()
+    {
+        if (ProjectInfo::Git::branch.empty())
+            return "";
+
+        const juce::String prefix = "\n    Branch: ";
+
+        if (ProjectInfo::Git::branch.size() <= 25)
+            return prefix + ProjectInfo::Git::branch;
+
+        return prefix + juce::String (ProjectInfo::Git::branch).substring (0, 20) + "...";
+    }
 };

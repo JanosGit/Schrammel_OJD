@@ -33,6 +33,10 @@ OJDAudioProcessorEditor::OJDAudioProcessorEditor (OJDAudioProcessor& proc)
     knobDrawable     (juce::Drawable::createFromImageData (BinaryData::knob_svg, BinaryData::knob_svgSize)),
     ojdLookAndFeel   (*knobDrawable)
 {
+    auto sourceCodePro = juce::Typeface::createSystemTypefaceFor (BinaryData::SourceCodeProRegular_ttf,
+                                                                  BinaryData::SourceCodeProRegular_ttfSize);
+    juce::LookAndFeel::getDefaultLookAndFeel().setDefaultSansSerifTypeface (sourceCodePro);
+
     setLookAndFeel (&ojdLookAndFeel);
 
     addAndMakeVisible (background);
