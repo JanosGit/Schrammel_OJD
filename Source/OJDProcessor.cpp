@@ -23,7 +23,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 #include "OJDAudioProcessorEditor.h"
 
 // To avoid extremely much typing when assigning filter coefficients
-using BiquadCoeffs = juce::dsp::IIR::Coefficients<float>;
+using BiquadCoeffs = juce::dsp::IIR::ArrayCoefficients<float>;
 
 OJDAudioProcessor::OJDAudioProcessor()
   : rawValueDrive  (*parameters.getRawParameterValue (OJDParameters::Sliders::Drive::id)),
@@ -62,8 +62,10 @@ void OJDAudioProcessor::prepareResources (bool sampleRateChanged, bool maxBlockS
     recalculateFilters();
 
     // Some fixed coefficients
-    *chain.get<hpf30>()  .state = *BiquadCoeffs::makeFirstOrderHighPass (spec.sampleRate, 30.0f);
-    *chain.get<lpf6_3k>().state = *BiquadCoeffs::makeFirstOrderLowPass  (spec.sampleRate, 6.3e3f);
+    *chain.get<hpf30>()  .state = BiquadCoeffs::makeFirstOrderHighPass (spec.sampleRate, 30.0f);
+    *chain.get<lpf6_3k>().state = BiquadCoeffs::makeFirstOrderLowPass  (spec.sampleRate, 6.3e3f);
+
+    updateParametersForProcessorChain();
 
     // Computing the chains latency. The oversampling in the waveshaper might introduce fractional sample delay
     const auto waveshaperLatency = chain.get<waveshaper>().getLatencyInSamples();
@@ -122,11 +124,11 @@ void OJDAudioProcessor::updateParametersForProcessorChain()
     // Drive – coefficients are computed in the parameterChanged callback, therefore we need the lock
     if (biquadParametersUpdated.load() && biquadParameterLock.tryEnter())
     {
-        *chain.get<biquadPreDriveBoost>().state   = *biquadPreDriveBoostCoeffs;
-        *chain.get<biquadPreDriveNotch>().state   = *biquadPreDriveNotchCoeffs;
-        *chain.get<biquadPostDriveBoost1>().state = *biquadPostDriveBoost1Coeffs;
-        *chain.get<biquadPostDriveBoost2>().state = *biquadPostDriveBoost2Coeffs;
-        *chain.get<biquadPostDriveBoost3>().state = *biquadPostDriveBoost3Coeffs;
+        *chain.get<biquadPreDriveBoost>().state   = biquadPreDriveBoostCoeffs;
+        *chain.get<biquadPreDriveNotch>().state   = biquadPreDriveNotchCoeffs;
+        *chain.get<biquadPostDriveBoost1>().state = biquadPostDriveBoost1Coeffs;
+        *chain.get<biquadPostDriveBoost2>().state = biquadPostDriveBoost2Coeffs;
+        *chain.get<biquadPostDriveBoost3>().state = biquadPostDriveBoost3Coeffs;
 
         biquadParametersUpdated.store (false);
         biquadParameterLock.exit();
@@ -177,11 +179,11 @@ void OJDAudioProcessor::recalculateFilters()
         // to avoid extremely long lines below
 #define CREATE_BIQUAD_COEFFICIENTS(stage) stage##Coeffs = BiquadCoeffs::makePeakFilter (sr, stage##Freq, stage##Q, juce::Decibels::decibelsToGain (stage##Gain))
 
-        CREATE_BIQUAD_COEFFICIENTS(biquadPreDriveBoost);
-        CREATE_BIQUAD_COEFFICIENTS(biquadPreDriveNotch);
-        CREATE_BIQUAD_COEFFICIENTS(biquadPostDriveBoost1);
-        CREATE_BIQUAD_COEFFICIENTS(biquadPostDriveBoost2);
-        CREATE_BIQUAD_COEFFICIENTS(biquadPostDriveBoost3);
+        CREATE_BIQUAD_COEFFICIENTS (biquadPreDriveBoost);
+        CREATE_BIQUAD_COEFFICIENTS (biquadPreDriveNotch);
+        CREATE_BIQUAD_COEFFICIENTS (biquadPostDriveBoost1);
+        CREATE_BIQUAD_COEFFICIENTS (biquadPostDriveBoost2);
+        CREATE_BIQUAD_COEFFICIENTS (biquadPostDriveBoost3);
     }
 
     biquadParametersUpdated.store(true);
@@ -197,4 +199,7 @@ void OJDAudioProcessor::parameterChanged (const juce::String& parameterID, float
 
 //==============================================================================
 // This creates new instances of the plugin..
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new OJDAudioProcessor(); }
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new OJDAudioProcessor();
+}

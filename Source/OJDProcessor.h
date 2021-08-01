@@ -88,11 +88,11 @@ private:
     juce::SpinLock biquadParameterLock;
     std::atomic<bool> biquadParametersUpdated { false };
 
-    juce::dsp::IIR::Coefficients<float>::Ptr biquadPreDriveBoostCoeffs;
-    juce::dsp::IIR::Coefficients<float>::Ptr biquadPreDriveNotchCoeffs;
-    juce::dsp::IIR::Coefficients<float>::Ptr biquadPostDriveBoost1Coeffs;
-    juce::dsp::IIR::Coefficients<float>::Ptr biquadPostDriveBoost2Coeffs;
-    juce::dsp::IIR::Coefficients<float>::Ptr biquadPostDriveBoost3Coeffs;
+    std::array<float, 6> biquadPreDriveBoostCoeffs;
+    std::array<float, 6> biquadPreDriveNotchCoeffs;
+    std::array<float, 6> biquadPostDriveBoost1Coeffs;
+    std::array<float, 6> biquadPostDriveBoost2Coeffs;
+    std::array<float, 6> biquadPostDriveBoost3Coeffs;
 
     jb::MessageOfTheDay messageOfTheDay { juce::URL ("https://schrammel.io/motd/ojd.json"), ProjectInfo::versionNumber };
     std::future<jb::MessageOfTheDay::InfoAndUpdate> infoAndUpdateMessage;
