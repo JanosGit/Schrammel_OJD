@@ -30,10 +30,8 @@ public:
       : housingBackside (BinaryData::backside_svg, BinaryData::backside_svgSize)
     {
         addAndMakeVisible (housingBackside);
-        auto versionInfo = "Version number: " + juce::String (ProjectInfo::versionString);
-        auto commitInfo = "Git Commit: " + juce::String (ProjectInfo::Git::commit);
-        if (! ProjectInfo::Git::branch.empty())
-            commitInfo += "\n    " + juce::String ("Branch: ") + ProjectInfo::Git::branch;
+        auto versionInfo = "Version: " + juce::String (ProjectInfo::versionString);
+        auto commitInfo = "Git Commit: " + juce::String (ProjectInfo::Git::commit) + getBranchName();
         auto buildDate = "Build date: " + juce::Time::getCompilationDate().toString(true, true, false);
 
         versionInfoLabel.setText (versionInfo, juce::dontSendNotification);
@@ -63,9 +61,9 @@ public:
         commitInfoLabel.setFont  (commitInfoLabel.getFont().withHeight (fontHeight));
         buildDateLabel.setFont   (buildDateLabel.getFont().withHeight (fontHeight));
 
-        versionInfoLabel.setBoundsRelative (0.2f, 0.7f,  0.8f, 0.05f);
-        commitInfoLabel.setBoundsRelative  (0.2f, 0.75f, 0.8f, 0.05f);
-        buildDateLabel.setBoundsRelative   (0.2f, 0.8f, 0.8f, 0.05f);
+        versionInfoLabel.setBoundsRelative (0.2f, 0.73f, 0.8f, 0.05f);
+        commitInfoLabel.setBoundsRelative  (0.2f, 0.78f, 0.8f, 0.05f);
+        buildDateLabel.setBoundsRelative   (0.2f, 0.83f, 0.8f, 0.05f);
     }
 
 private:
@@ -76,4 +74,17 @@ private:
     juce::Label buildDateLabel;
 
     jb::SVGComponent housingBackside;
+
+    static juce::String getBranchName()
+    {
+        if (ProjectInfo::Git::branch.empty())
+            return "";
+
+        const juce::String prefix = "\n    Branch: ";
+
+        if (ProjectInfo::Git::branch.size() <= 25)
+            return prefix + ProjectInfo::Git::branch;
+
+        return prefix + juce::String (ProjectInfo::Git::branch).substring (0, 20) + "...";
+    }
 };

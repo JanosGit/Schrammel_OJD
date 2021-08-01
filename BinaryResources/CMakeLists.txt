@@ -41,4 +41,4 @@ juce_add_binary_data(EmbeddedBinaryData
         Graphics/shadowOverlay.png
 
         # Fonts
-        Fonts/varela.regular.ttf)
+        Fonts/SourceCodePro-Regular.ttf)
