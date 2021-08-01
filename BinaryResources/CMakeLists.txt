@@ -23,17 +23,22 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 juce_add_binary_data(EmbeddedBinaryData
     SOURCES
+        # Vector Graphics
         Graphics/background.svg
-        Graphics/pedalHousingShadow.png
+        Graphics/backside.svg
         Graphics/pedalHousing.svg
         Graphics/knob.svg
-        Graphics/slideSwitchShadow.png
         Graphics/slideKnob.svg
         Graphics/hpLpBackground.svg
         Graphics/bypassBackground.svg
-        Graphics/shadowOverlay.png
         Graphics/ledOn.svg
         Graphics/ledOff.svg
         Graphics/grommet-icons/settings-option.svg
 
+        # Raster Graphics
+        Graphics/slideSwitchShadow.png
+        Graphics/pedalHousingShadow.png
+        Graphics/shadowOverlay.png
+
+        # Fonts
         Fonts/varela.regular.ttf)

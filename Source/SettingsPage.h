@@ -27,11 +27,13 @@ class SettingsPage : public juce::Component
 {
 public:
     SettingsPage()
+      : housingBackside (BinaryData::backside_svg, BinaryData::backside_svgSize)
     {
+        addAndMakeVisible (housingBackside);
         auto versionInfo = "Version number: " + juce::String (ProjectInfo::versionString);
-        auto commitInfo = "Git commit: " + juce::String (ProjectInfo::Git::commit);
+        auto commitInfo = "Git Commit: " + juce::String (ProjectInfo::Git::commit);
         if (! ProjectInfo::Git::branch.empty())
-            commitInfo += juce::String (", Branch ") + ProjectInfo::Git::branch;
+            commitInfo += "\n    " + juce::String ("Branch: ") + ProjectInfo::Git::branch;
         auto buildDate = "Build date: " + juce::Time::getCompilationDate().toString(true, true, false);
 
         versionInfoLabel.setText (versionInfo, juce::dontSendNotification);
@@ -50,36 +52,20 @@ public:
 
     void resized() override
     {
-        fontHeight = getHeight() * 0.03f;
+        auto bounds = getLocalBounds();
+
+        auto hb = jb::scaledKeepingCentre (bounds, 0.94f);
+        housingBackside.setBounds (hb);
+
+        fontHeight = static_cast<float> (getHeight ()) * 0.02f;
 
         versionInfoLabel.setFont (versionInfoLabel.getFont().withHeight (fontHeight));
         commitInfoLabel.setFont  (commitInfoLabel.getFont().withHeight (fontHeight));
         buildDateLabel.setFont   (buildDateLabel.getFont().withHeight (fontHeight));
 
-        versionInfoLabel.setBoundsRelative (0.1f, 0.3f,  0.8f, 0.05f);
-        commitInfoLabel.setBoundsRelative  (0.1f, 0.35f, 0.8f, 0.05f);
-        buildDateLabel.setBoundsRelative   (0.1f, 0.4f,  0.8f, 0.05f);
-    }
-
-    void paint (juce::Graphics& g) override
-    {
-        g.fillAll (juce::Colours::grey.withAlpha (0.25f));
-        g.setFont (fontHeight);
-
-        g.setColour (juce::Colours::white);
-        g.drawHorizontalLine (proportionOfHeight (0.2f), 0.0f, static_cast<float> (getWidth()));
-        g.drawText ("Version Information", proportionOfWidth (0.1f),
-                                           proportionOfHeight (0.21f),
-                                           versionInfoLabel.getWidth(),
-                                           proportionOfHeight(0.5f),
-                                           juce::Justification::topLeft);
-
-        g.drawHorizontalLine (proportionOfHeight (0.6f), 0.0f, static_cast<float> (getWidth()));
-        g.drawText ("Settings", proportionOfWidth (0.1f),
-                                proportionOfHeight (0.61f),
-                                versionInfoLabel.getWidth(),
-                                proportionOfHeight(0.5f),
-                                juce::Justification::topLeft);
+        versionInfoLabel.setBoundsRelative (0.2f, 0.7f,  0.8f, 0.05f);
+        commitInfoLabel.setBoundsRelative  (0.2f, 0.75f, 0.8f, 0.05f);
+        buildDateLabel.setBoundsRelative   (0.2f, 0.8f, 0.8f, 0.05f);
     }
 
 private:
@@ -88,4 +74,6 @@ private:
     juce::Label versionInfoLabel;
     juce::Label commitInfoLabel;
     juce::Label buildDateLabel;
+
+    jb::SVGComponent housingBackside;
 };
