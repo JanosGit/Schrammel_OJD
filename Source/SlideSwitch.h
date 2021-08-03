@@ -45,7 +45,7 @@ public:
     void resized() override
     {
         // All rasterized items should be rendered at a higher scale.
-        auto scale = juce::Desktop::getInstance().getDisplays().findDisplayForPoint (getBounds().getCentre()).scale;
+        auto scale = juce::Desktop::getInstance().getDisplays().getDisplayForPoint (getBounds().getCentre())->scale;
 
         constexpr auto insetFactor = 0.9f;
         auto newImageBounds = getLocalBounds().toFloat() * scale * insetFactor;

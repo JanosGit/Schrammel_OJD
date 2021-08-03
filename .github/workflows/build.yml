@@ -57,7 +57,7 @@ jobs:
     # End of macOS only codesigning step ===========================================================
 
     - name: Upload build artefacts and installer support files
-      uses: actions/upload-artifact@v2.2.1
+      uses: actions/upload-artifact@v2.2.4
       with:
         name: OJD-build-output-${{ matrix.os.name }}
         path: |

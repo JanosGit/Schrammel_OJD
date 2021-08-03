@@ -59,17 +59,28 @@ endif()
 
 # Add the plugin target itself
 juce_add_plugin (OJD
+
         COMPANY_NAME Schrammel
         PRODUCT_NAME "OJD"
+
         IS_SYNTH FALSE
         NEEDS_MIDI_INPUT FALSE
         NEEDS_MIDI_OUTPUT FALSE
         IS_MIDI_EFFECT FALSE
-        COPY_PLUGIN_AFTER_BUILD TRUE                # Should the plugin be installed to a default location after building?
-        FORMATS ${FormatsToBuild}                   # The formats to build. Depending on the platform and if an AAX SDK is passed in
-        PLUGIN_MANUFACTURER_CODE Srml               # A four-character manufacturer id with at least one upper-case character
-        PLUGIN_CODE SOJD                            # A unique four-character plugin id with at least one upper-case character
-        AAX_IDENTIFIER de.schrammel.ojd
+
+        COPY_PLUGIN_AFTER_BUILD TRUE
+        FORMATS ${FormatsToBuild}
+
+        AAX_IDENTIFIER io.schrammel.ojd
+        # A four-character manufacturer id with at least one upper-case character
+        PLUGIN_MANUFACTURER_CODE Srml
+        # A unique four-character plugin id with at least one upper-case character
+        PLUGIN_CODE SOJD
+
+        # When the OJD was released, there was a bug in JUCE that wrongly reported the plugin code "proj". Applying this
+        # to not break existing sessions
+        USE_LEGACY_COMPATIBILITY_PLUGIN_CODE TRUE
+
         VST3_CATEGORIES Fx Distortion
         AU_MAIN_TYPE kAudioUnitType_Effect
         AAX_CATEGORY AAX_ePlugInCategory_Harmonic)

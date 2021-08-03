@@ -42,11 +42,14 @@ public:
         constexpr auto hpModeFreq = 358.0f;
         constexpr auto lpModeFreq = 160.0f;
 
-        hpfCoeffsHPMode = juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass (spec.sampleRate, hpModeFreq);
-        hpfCoeffsLPMode = juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass (spec.sampleRate, lpModeFreq);
+        hpfCoeffsHPMode = juce::dsp::IIR::ArrayCoefficients<float>::makeFirstOrderHighPass (spec.sampleRate, hpModeFreq);
+        hpfCoeffsLPMode = juce::dsp::IIR::ArrayCoefficients<float>::makeFirstOrderHighPass (spec.sampleRate, lpModeFreq);
 
-        lpfCoeffsHPMode = juce::dsp::IIR::Coefficients<float>::makeFirstOrderLowPass (spec.sampleRate, hpModeFreq);
-        lpfCoeffsLPMode = juce::dsp::IIR::Coefficients<float>::makeFirstOrderLowPass (spec.sampleRate, lpModeFreq);
+        lpfCoeffsHPMode = juce::dsp::IIR::ArrayCoefficients<float>::makeFirstOrderLowPass (spec.sampleRate, hpModeFreq);
+        lpfCoeffsLPMode = juce::dsp::IIR::ArrayCoefficients<float>::makeFirstOrderLowPass (spec.sampleRate, lpModeFreq);
+
+        *hpf.state = currentMode == hp ? hpfCoeffsHPMode : hpfCoeffsLPMode;
+        *lpf.state = currentMode == hp ? lpfCoeffsHPMode : lpfCoeffsLPMode;
 
         hpf.prepare (spec);
         lpf.prepare (spec);
@@ -79,8 +82,8 @@ public:
         {
             currentMode = newMode;
 
-            *hpf.state = newMode == hp ? *hpfCoeffsHPMode : *hpfCoeffsLPMode;
-            *lpf.state = newMode == hp ? *lpfCoeffsHPMode : *lpfCoeffsLPMode;
+            *hpf.state = newMode == hp ? hpfCoeffsHPMode : hpfCoeffsLPMode;
+            *lpf.state = newMode == hp ? lpfCoeffsHPMode : lpfCoeffsLPMode;
         }
     }
 
@@ -92,8 +95,8 @@ private:
 
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> hpf, lpf;
 
-    juce::dsp::IIR::Coefficients<float>::Ptr hpfCoeffsHPMode, hpfCoeffsLPMode;
-    juce::dsp::IIR::Coefficients<float>::Ptr lpfCoeffsHPMode, lpfCoeffsLPMode;
+    std::array<float, 4> hpfCoeffsHPMode, hpfCoeffsLPMode;
+    std::array<float, 4> lpfCoeffsHPMode, lpfCoeffsLPMode;
 
     juce::dsp::Gain<float> hpfGain;
     float tone = 1.0f;
