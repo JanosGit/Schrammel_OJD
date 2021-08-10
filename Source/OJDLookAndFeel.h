@@ -21,7 +21,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <juce_gui_basics/juce_gui_basics.h>
 
 class OJDLookAndFeel : public juce::LookAndFeel_V4
 {

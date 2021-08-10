@@ -21,7 +21,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <jb_plugin_base/jb_plugin_base.h>
+#include <Resvg4JUCE/Resvg4JUCE.h>
+#include <BinaryData.h>
 
 class SettingsPage : public juce::Component
 {
@@ -30,7 +32,7 @@ public:
       : housingBackside (BinaryData::backside_svg, BinaryData::backside_svgSize)
     {
         addAndMakeVisible (housingBackside);
-        auto versionInfo = "Version: " + juce::String (ProjectInfo::versionString);
+        auto versionInfo = "Version: " + juce::String (JucePlugin_VersionString);
         auto commitInfo = "Git Commit: " + juce::String (ProjectInfo::Git::commit) + getBranchName();
         auto buildDate = "Build date: " + juce::Time::getCompilationDate().toString(true, true, false);
 

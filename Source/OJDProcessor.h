@@ -21,7 +21,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_dsp/juce_dsp.h>
+#include <jb_plugin_base/jb_plugin_base.h>
 #include "OJDParameters.h"
 #include "ToneStack.h"
 #include "Waveshaper.h"
@@ -94,7 +96,7 @@ private:
     std::array<float, 6> biquadPostDriveBoost2Coeffs;
     std::array<float, 6> biquadPostDriveBoost3Coeffs;
 
-    jb::MessageOfTheDay messageOfTheDay { juce::URL ("https://schrammel.io/motd/ojd.json"), ProjectInfo::versionNumber };
+    jb::MessageOfTheDay messageOfTheDay { juce::URL ("https://schrammel.io/motd/ojd.json"), JucePlugin_VersionCode };
     std::future<jb::MessageOfTheDay::InfoAndUpdate> infoAndUpdateMessage;
 
     void checkForMessageOfTheDay();
