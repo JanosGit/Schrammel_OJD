@@ -88,9 +88,6 @@ juce_add_plugin (OJD
 # We want to compile the plugin with C++14
 target_compile_features (OJD PRIVATE cxx_std_14)
 
-# Using JUCE header as the original project was developed with Projucer - might be removed in future
-juce_generate_juce_header (OJD)
-
 # Gather some info regarding our git commit to inject them into a header file.
 jb_add_git_version_info (OJD)
 

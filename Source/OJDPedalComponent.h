@@ -21,7 +21,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <jb_plugin_base/jb_plugin_base.h>
 #include "OJDProcessor.h"
 #include "SlideSwitch.h"
 

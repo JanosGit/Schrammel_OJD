@@ -21,6 +21,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 #pragma once
 #include <Resvg4JUCE/Resvg4JUCE.h>
+#include <BinaryData.h>
 
 /**
  * A slightly hacky class to paint the slide switches from the Adobe XD based GUI design draft.
