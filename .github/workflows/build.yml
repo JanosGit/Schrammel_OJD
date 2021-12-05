@@ -46,12 +46,12 @@ jobs:
       if: runner.os == 'macOS'
 
     - name: Codesign AU plugin
-      working-directory: ${{ runner.workspace }}/build/OJD_artefacts/${{ env.BUILD_TYPE }}/AU
+      working-directory: ${{ runner.workspace }}/build/OJD-AU_artefacts/${{ env.BUILD_TYPE }}/AU
       run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.component --timestamp
       if: runner.os == 'macOS'
 
     - name: Codesign VST3 plugin
-      working-directory: ${{ runner.workspace }}/build/OJD_artefacts/${{ env.BUILD_TYPE }}/VST3
+      working-directory: ${{ runner.workspace }}/build/OJD-VST3_artefacts/${{ env.BUILD_TYPE }}/VST3
       run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.vst3 --timestamp
       if: runner.os == 'macOS'
     # End of macOS only codesigning step ===========================================================
@@ -61,9 +61,12 @@ jobs:
       with:
         name: OJD-build-output-${{ matrix.os.name }}
         path: |
-              ${{ runner.workspace }}/build/OJD_artefacts/${{ env.BUILD_TYPE }}
-              !${{ runner.workspace }}/build/OJD_artefacts/${{ env.BUILD_TYPE }}/**/*.a
-              !${{ runner.workspace }}/build/OJD_artefacts/${{ env.BUILD_TYPE }}/**/*.lib
+              ${{ runner.workspace }}/build/OJD-VST3_artefacts/${{ env.BUILD_TYPE }}
+              ${{ runner.workspace }}/build/OJD-AU_artefacts/${{ env.BUILD_TYPE }}
+              ${{ runner.workspace }}/build/OJD-AAX_artefacts/${{ env.BUILD_TYPE }}
+              !${{ runner.workspace }}/build/OJD*_artefacts/${{ env.BUILD_TYPE }}/**/*.a
+              !${{ runner.workspace }}/build/OJD*_artefacts/${{ env.BUILD_TYPE }}/**/*.lib
+        if-no-files-found: ignore # it's okay to not find the AU on Windows
 
             
 # =================================================================================================
