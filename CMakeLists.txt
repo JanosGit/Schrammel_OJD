@@ -33,7 +33,7 @@ if (APPLE)
     set (CMAKE_OSX_ARCHITECTURES x86_64 arm64)
 endif()
 
-project (SCHRAMMEL_OJD VERSION 0.9.7)
+project (SCHRAMMEL_OJD VERSION 0.9.8)
 
 # Adding JUCE
 add_subdirectory (Ext/JUCE)
