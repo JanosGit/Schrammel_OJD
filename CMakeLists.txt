@@ -30,7 +30,7 @@ endif()
 # If we are compiling for Mac OS we want to target OS versions down to 10.9
 if (APPLE)
     set (CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE INTERNAL "")
-    set (CMAKE_OSX_ARCHITECTURES x86_64)
+    set (CMAKE_OSX_ARCHITECTURES x86_64 arm64)
 endif()
 
 project (SCHRAMMEL_OJD VERSION 0.9.7)
@@ -102,10 +102,6 @@ target_link_libraries (OJD-${format} PRIVATE
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
         juce::juce_recommended_config_flags)
-
-if (WIN32)
-    target_link_libraries (OJD-${format} PRIVATE bcrypt)
-endif()
 
 endfunction()
 
