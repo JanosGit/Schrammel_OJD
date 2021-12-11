@@ -22,6 +22,8 @@ jobs:
           name: mac
         - runner: windows-latest
           name: windows
+          shell: powershell
+      fail-fast: false
 
     steps:
     - uses: actions/checkout@v2
@@ -37,44 +39,58 @@ jobs:
       working-directory: ${{ runner.workspace }}/build
       run: cmake --build . --config ${{ env.BUILD_TYPE }}
 
+    # Move the built files to the output folder ==========================================================
+    - name: (macOS) Create output folder
+      run: mkdir ${{ runner.workspace }}/OJD-build-output
+      if: runner.os == 'macOS'
+
+    - name: (macOS) Move AU to output folder
+      run: mv ${{ runner.workspace }}/build/OJD-AU_artefacts/${{ env.BUILD_TYPE }}/AU ${{ runner.workspace }}/OJD-build-output
+      if: runner.os == 'macOS'
+
+    - name: (macOS) Move VST3 to output folder
+      run: mv ${{ runner.workspace }}/build/OJD-VST3_artefacts/${{ env.BUILD_TYPE }}/VST3 ${{ runner.workspace }}/OJD-build-output
+      if: runner.os == 'macOS'
+
+    - name: (Windows) Create output folder
+      run: New-Item -Path '${{ runner.workspace }}\OJD-build-output' -ItemType Directory
+      if: runner.os == 'Windows'
+
+    - name: (Windows) Copy VST3 to output folder
+      run: Copy-Item -Path '${{ runner.workspace }}\build\OJD-VST3_artefacts\${{ env.BUILD_TYPE }}\VST3' -Destination '${{ runner.workspace }}\OJD-build-output' -Recurse
+      if: runner.os == 'Windows'
+
     # Start of macOS only codesigning step ==========================================================
-    - name: Setup temporary keychain and add application signing certificate
+    - name: (macOS) Setup temporary keychain and add application signing certificate
       uses: apple-actions/import-codesign-certs@v1
       with: 
         p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_APPLICATION }}
         p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
       if: runner.os == 'macOS'
 
-    - name: Codesign AU plugin
-      working-directory: ${{ runner.workspace }}/build/OJD-AU_artefacts/${{ env.BUILD_TYPE }}/AU
+    - name: (macOS) Codesign AU plugin
+      working-directory: ${{ runner.workspace }}/OJD-build-output/AU
       run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.component --timestamp
       if: runner.os == 'macOS'
 
-    - name: Codesign VST3 plugin
-      working-directory: ${{ runner.workspace }}/build/OJD-VST3_artefacts/${{ env.BUILD_TYPE }}/VST3
+    - name: (macOS) Codesign VST3 plugin
+      working-directory: ${{ runner.workspace }}/OJD-build-output/VST3
       run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.vst3 --timestamp
       if: runner.os == 'macOS'
     # End of macOS only codesigning step ===========================================================
 
-    - name: Upload build artefacts and installer support files
-      uses: actions/upload-artifact@v2.2.4
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v2
       with:
         name: OJD-build-output-${{ matrix.os.name }}
-        path: |
-              ${{ runner.workspace }}/build/OJD-VST3_artefacts/${{ env.BUILD_TYPE }}
-              ${{ runner.workspace }}/build/OJD-AU_artefacts/${{ env.BUILD_TYPE }}
-              ${{ runner.workspace }}/build/OJD-AAX_artefacts/${{ env.BUILD_TYPE }}
-              !${{ runner.workspace }}/build/OJD*_artefacts/${{ env.BUILD_TYPE }}/**/*.a
-              !${{ runner.workspace }}/build/OJD*_artefacts/${{ env.BUILD_TYPE }}/**/*.lib
-        if-no-files-found: ignore # it's okay to not find the AU on Windows
-
+        path: ${{ runner.workspace }}/OJD-build-output
             
 # =================================================================================================
 # The installer-relevant steps below are only executed on develop and master but not on feature-branches 
 # =================================================================================================
 
     - name: Upload installer support files
-      uses: actions/upload-artifact@v2.2.1
+      uses: actions/upload-artifact@v2
       with:
         name: OJD-installer-files-${{ matrix.os.name }}
         path: ${{ runner.workspace }}/Schrammel_OJD/Deployment/${{ matrix.os.name }}
@@ -133,7 +149,7 @@ jobs:
           run: hdiutil create Install\ OJD.dmg -fs HFS+ -srcfolder OJD-installer-signed -format UDZO -volname Install\ OJD
 
         - name: Upload DMG
-          uses: actions/upload-artifact@v2.2.1
+          uses: actions/upload-artifact@v2
           with:
             name: OJD-installer-mac
             path: Install\ OJD.dmg
@@ -167,7 +183,7 @@ jobs:
           run: iscc "OJD Installer.iss"
 
         - name: Upload installer
-          uses: actions/upload-artifact@v2.2.1
+          uses: actions/upload-artifact@v2
           with:
             name: OJD-installer-windows
             path: "Output/Install OJD.exe"
