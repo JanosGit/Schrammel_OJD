@@ -103,6 +103,10 @@ target_link_libraries (OJD-${format} PRIVATE
         juce::juce_recommended_warning_flags
         juce::juce_recommended_config_flags)
 
+if (WIN32)
+    target_link_libraries (OJD-${format} PRIVATE bcrypt)
+endif()
+
 endfunction()
 
 add_ojd_version(VST3
