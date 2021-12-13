@@ -1,6 +1,6 @@
 [Setup]
 AppName=OJD
-AppVersion=0.9.6
+AppVersion=0.9.8
 DefaultDirName={commoncf64}
 DefaultGroupName=OJD
 OutputBaseFilename="Install OJD"
