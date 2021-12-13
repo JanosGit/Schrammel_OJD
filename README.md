@@ -32,26 +32,45 @@ The OJD is currently available for Mac OS and Windows as VST3 and AU (Mac OS onl
 
 The OJD is a free open source plugin, there is no license key required. Beneath downloading the ready-to-use installers, you can always build it yourself from sources if you are familiar with all those software development stuff. The project is based on a CMake build script.
 
-There are various ways to build a CMake-based project. For all of them you need CMake being installed on the system, along with suitable platform specific build tools – I currently use the XCode 12.2 toolchain for macOS builds and Visual Studio 2019 with the clang-cl compiler for Windows. Furthermore Rust build tools need to be installed to build the resvg rendering engine which is included as submodule into this project.
+There are various ways to build a CMake-based project. For all of them you need CMake being installed on the system, along with suitable platform specific build tools – I currently use the XCode 13.1 toolchain for macOS builds and Visual Studio 2019 with the clang-cl compiler for Windows. For Windows builds, it's expected to use the Visual Studio 2019 generator. Furthermore Rust build tools need to be installed to build the resvg rendering engine which is included as submodule into this project.
 
+### Do it all from the command line
+Of course, you don't even need to open an IDE to build the plugin. You can trigger the build completely from the command line and give CMake the freedom to chose whatever it sees as the suitable default generator for your platform. On macOS and Linux type
+```
+cmake -DCMAKE_BUILD_TYPE=Release -B build
+```
+or on Windows type
+```
+cmake -DCMAKE_BUILD_TYPE=Release -B build -G "Visual Studio 16 2019"
+```
+to configure a release build in the `build` subdirectory. Then call
+```
+cmake --build build
+```
+to let CMake start the build it configured in the previous step. These are all basic CMake commands, if you are interested in more details, you'll find a lot information on the internet. In theory, it's possible to also generate IDE projects that way, but last time I tried it, Xcode had troubles with compiling the resvg rust target and I'm not planing trying to fix that. 
+
+This is basically how I trigger the builds for my GitHub actions based build pipeline used to build the plugin that you download. For more details look into the `.github/workflows/build.yml` file.
 
 ### Use a CMake capable IDE
 On Windows you can directly open the CMake project in Visual Studio 2019. When doing so, Visual Studio will create a project based on the ninja build system for you automatically and you can compile and work with it just like you would do with a ususal Visual Studio solution.
 
-For macOS, Linux and of course also for Windows you can use Jet Brains CLion IDE, which is what I use for the development of the plugin myself
+For macOS, Linux and of course also for Windows you can use Jet Brains CLion IDE, which is what I use for the development of the plugin myself. Note that on Windows you should supply the -G "Visual Studio 16 2019" command in the CMake preferences in order to use the Visual Studio generator from CMake.
 
-### Do it all from the command line
-Of course, you don't even need to open an IDE to build the plugin. You can trigger the build completely from the command line and give CMake the freedom to chose whatever it sees as the suitable default generator for your platform. Type in 
-`cmake -DCMAKE_BUILD_TYPE=Release -B build`
-to configure a release build in the `build` subdirectory and then call
-`cmake --build build`
-to let CMake start the build it configured in the previous step.
+## Changelog
 
-This is basically how I trigger the builds for my GitHub actions based build pipeline used to build the plugin that you download. For more details look into the `.github/workflows/build.yml` file.
+0.9.8
+- macOS version is now built as universal binary for native M1 compatibility
+- Changed default parameters to compensate volume drop when first loading the plugin
+- Avoid possible audio glitches when modulating parameters fast
+- Make stereo processing possible
+- Added an info page with version and update info
 
-### (Currently unsupported) Generate an IDE project
-CMake allows you to create projects for various IDEs from the `CMakeLists.txt`. If you want to build the project with Xcode or JetBrains AppCode on MacOS, open up a terminal and type in
+0.9.7
+- Updated Resvg4JUCE dependency to fix crashes reported for older macOS Deployment targets
 
-`cmake -G Xcode -B build` This creates an XCode project from CMake. After running that command you'll find an XCode project into the build subfolder folder that can be used to build the plugin. Of course you can chose a different name or path for the `build` folder.
-
-Note: As I don't use this option myself it seems broken with the resvg compilation target. I'm open to any pull requests fixing this, but it's not a high priority thing for me personally.
+0.9.6
+- Fixed an issue where resizing the plugin window could break the UI layout
+- Completely new UI assets
+- Added message of the day functionality
+- Now using third party SVG rendering library resvg instead of JUCE SVG rendering implementation
+- Windows installer now installs VC redistributable
