@@ -21,7 +21,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <juce_dsp/juce_dsp.h>
 
 class Waveshaper : public juce::dsp::ProcessorBase
 {
@@ -54,29 +54,32 @@ public:
 
     void prepare (const juce::dsp::ProcessSpec& spec) override
     {
-        oversampler.initProcessing (spec.maximumBlockSize);
+        constexpr size_t oversamplingOrder = 4;
+        constexpr auto filterType = juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR;
+
+        oversampler = std::make_unique<juce::dsp::Oversampling<float>> (spec.numChannels, oversamplingOrder, filterType);
+        oversampler->initProcessing (spec.maximumBlockSize);
     }
 
     void process (const juce::dsp::ProcessContextReplacing<float>& context) override
     {
         // First sample up...
-        auto oversampledBlock = oversampler.processSamplesUp (context.getInputBlock());
+        auto oversampledBlock = oversampler->processSamplesUp (context.getInputBlock());
         // Then process with the waveshaper...
         waveshaper.process (juce::dsp::ProcessContextReplacing<float> (oversampledBlock));
         // Finally sample back down
-        oversampler.processSamplesDown (context.getOutputBlock());
+        oversampler->processSamplesDown (context.getOutputBlock());
     }
 
-    void reset() override { oversampler.reset(); }
+    void reset() override { oversampler->reset(); }
 
-    float getLatencyInSamples() { return oversampler.getLatencyInSamples(); }
+    float getLatencyInSamples()
+    {
+        return oversampler == nullptr ? 0.0f : oversampler->getLatencyInSamples();
+    }
 
 private:
-    static const size_t numChannels = 1;
-    static const size_t oversamplingOrder = 4;
-    static const int    oversamplingFactor = 1 << oversamplingOrder;
-    static const auto filterType = juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR;
 
-    juce::dsp::Oversampling<float> oversampler {numChannels, oversamplingOrder, filterType};
+    std::unique_ptr<juce::dsp::Oversampling<float>> oversampler;
     juce::dsp::WaveShaper<float> waveshaper;
 };

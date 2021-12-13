@@ -22,83 +22,58 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 ]]
 
 # If we are using MSVC we want dynamic runtime linkage
-if (MSVC)
+if (WIN32)
+    set (CMAKE_GENERATOR_TOOLSET ClangCL)
     set (CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 endif()
 
 # If we are compiling for Mac OS we want to target OS versions down to 10.9
 if (APPLE)
     set (CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE INTERNAL "")
+    set (CMAKE_OSX_ARCHITECTURES x86_64 arm64)
 endif()
 
-project (SCHRAMMEL_OJD VERSION 0.9.7)
+project (SCHRAMMEL_OJD VERSION 0.9.8)
 
 # Adding JUCE
 add_subdirectory (Ext/JUCE)
 
+# The subdirectory contains its own CMakeLists that creates BinaryData targets containing graphics and fonts
+add_subdirectory (BinaryResources)
+
 # Adding JSON
 set (JSON_BuildTests OFF CACHE INTERNAL "")
 set (JSON_Install OFF CACHE INTERNAL "")
-add_subdirectory (Ext/JBPluginBase/Ext/json)
+add_subdirectory (Ext/JBPluginBase)
+add_subdirectory (Ext/Resvg4JUCE)
 
-# Adding own modules
-juce_add_module (Ext/JBPluginBase/jb_plugin_base)
-juce_add_module (Ext/Resvg4JUCE/jb_resvg)
-
-# Set include paths for resvg lib. Todo: Make target based
-if (WIN32)
-    LINK_DIRECTORIES (Ext/Resvg4JUCE/jb_resvg/libs/VisualStudio2019/x64/MD)
-else()
-    LINK_DIRECTORIES (Ext/Resvg4JUCE/jb_resvg/libs/MacOSX/x86_64)
-endif()
-
-# VST3 should be built on all platforms
-set (FormatsToBuild VST3)
-
-# On Mac, a AU version will be built too
-if (APPLE)
-    list (APPEND FormatsToBuild AU)
-endif()
-
-# If a path to the AAX SDK is passed to CMake, an AAX version will be built too
-if (AAX_SDK_PATH)
-    juce_set_aax_sdk_path (${AAX_SDK_PATH})
-    list (APPEND FormatsToBuild AAX)
-endif()
+function (add_ojd_version format)
 
 # Add the plugin target itself
-juce_add_plugin (OJD
+juce_add_plugin (OJD-${format}
+
         COMPANY_NAME Schrammel
         PRODUCT_NAME "OJD"
-        IS_SYNTH FALSE
-        NEEDS_MIDI_INPUT FALSE
-        NEEDS_MIDI_OUTPUT FALSE
-        IS_MIDI_EFFECT FALSE
-        COPY_PLUGIN_AFTER_BUILD TRUE                # Should the plugin be installed to a default location after building?
-        FORMATS ${FormatsToBuild}                   # The formats to build. Depending on the platform and if an AAX SDK is passed in
-        PLUGIN_MANUFACTURER_CODE Srml               # A four-character manufacturer id with at least one upper-case character
-        PLUGIN_CODE SOJD                            # A unique four-character plugin id with at least one upper-case character
-        AAX_IDENTIFIER de.schrammel.ojd
-        VST3_CATEGORIES Fx Distortion
-        AU_MAIN_TYPE kAudioUnitType_Effect
-        AAX_CATEGORY AAX_ePlugInCategory_Harmonic)
+
+        COPY_PLUGIN_AFTER_BUILD TRUE
+        FORMATS ${format}
+
+        ${ARGN})
 
 # We want to compile the plugin with C++14
-target_compile_features (OJD PRIVATE cxx_std_14)
+target_compile_features (OJD-${format} PRIVATE cxx_std_14)
 
-# Using JUCE header as the original project was developed with Projucer - might be removed in future
-juce_generate_juce_header (OJD)
+# Gather some info regarding our git commit to inject them into a header file.
+jb_add_git_version_info (OJD-${format})
 
 # Adding all source files to the plugin target
-target_sources (OJD PRIVATE
+target_sources (OJD-${format} PRIVATE
+        Source/OJDPedalComponent.cpp
         Source/OJDAudioProcessorEditor.cpp
         Source/OJDProcessor.cpp
         Source/OJDParameters.cpp)
 
-# The subdirectory contains its own CMakeLists that creates a BinaryData target containing all SVGs
-add_subdirectory (BinaryResources/SVGs)
-
-target_compile_definitions (OJD
+target_compile_definitions (OJD-${format}
         PUBLIC
         DONT_SET_USING_JUCE_NAMESPACE=1
         JUCE_DISPLAY_SPLASH_SCREEN=0
@@ -108,27 +83,67 @@ target_compile_definitions (OJD
         JUCE_VST3_CAN_REPLACE_VST2=0
         JB_INCLUDE_JSON=1)
 
-target_link_libraries (OJD PRIVATE
+target_link_libraries (OJD-${format} PRIVATE
         # JUCE Modules
         juce::juce_audio_utils
         juce::juce_dsp
 
         # Custom modules
         jb_plugin_base
-        jb_resvg
+        jb::Resvg4JUCE
 
         # JSON dependncy in plugin base
         nlohmann_json::nlohmann_json
 
         # Binary Data
-        EmbeddedSVGs
+        EmbeddedBinaryData
 
         # Recommended flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
         juce::juce_recommended_config_flags)
 
-# The Deployment subdirectory contains its own CMakeLists that creates a CPack based installer
-if (CREATE_INSTALLER)
-    add_subdirectory (Deployment)
+endfunction()
+
+add_ojd_version(VST3
+        # A four-character manufacturer id with at least one upper-case character
+        PLUGIN_MANUFACTURER_CODE Srml
+        # A unique four-character plugin id with at least one upper-case character
+        PLUGIN_CODE SOJD
+
+        # When the OJD was released, there was a bug in JUCE that wrongly reported the plugin code "proj". Applying this
+        # to not break existing sessions
+        USE_LEGACY_COMPATIBILITY_PLUGIN_CODE TRUE
+
+        VST3_CATEGORIES Fx Distortion)
+
+if (APPLE)
+add_ojd_version(AU
+        # A four-character manufacturer id with at least one upper-case character
+        PLUGIN_MANUFACTURER_CODE Srml
+        # A unique four-character plugin id with at least one upper-case character
+        PLUGIN_CODE Sojd
+
+        AU_MAIN_TYPE kAudioUnitType_Effect)
 endif()
+
+if(AAX_SDK_PATH)
+    juce_set_aax_sdk_path(${AAX_SDK_PATH})
+    add_ojd_version(AAX
+            # A four-character manufacturer id with at least one upper-case character
+            PLUGIN_MANUFACTURER_CODE Srml
+            # A unique four-character plugin id with at least one upper-case character
+            PLUGIN_CODE Sojd
+
+            AAX_IDENTIFIER io.schrammel.ojd
+            AAX_CATEGORY AAX_ePlugInCategory_Harmonic)
+
+    target_compile_definitions(OJD-AAX PRIVATE JUCE_DISPLAY_SPLASH_SCREEN=1)
+endif()
+
+add_library (OJD-ALL_FORMATS INTERFACE)
+target_link_libraries (OJD-ALL_FORMATS
+    INTERFACE
+        OJD-AU_AU
+        OJD-VST3_VST3
+        OJD-AAX_AAX)

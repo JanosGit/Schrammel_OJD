@@ -1,1 +1,0 @@
-This application will install the Schrammel OJD guitar distortion plugin version 0.9.7 to your computer.

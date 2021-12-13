@@ -88,8 +88,8 @@ bool OJDParameters::Switches::Bypass::isActive (const std::atomic<float>& rawVal
 //================ Parameter layout creation ===========================================================================
 juce::AudioProcessorValueTreeState::ParameterLayout OJDParameters::createParameterLayout()
 {
-#define MAKE_ROTARY_PARAMETER(Name)                                                          \
-    std::make_unique<juce::AudioParameterFloat> (Sliders::Name::id, #Name, Sliders::displayRange, 5.0f)
+#define MAKE_ROTARY_PARAMETER(Name, defaultValue) \
+    std::make_unique<juce::AudioParameterFloat> (Sliders::Name::id, #Name, Sliders::displayRange, defaultValue)
 
 #define MAKE_SWITCH_PARAMETER(Name, displayName)                                             \
     std::make_unique<juce::AudioParameterBool>  (Switches::Name::id, displayName, false, "", \
@@ -98,9 +98,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout OJDParameters::createParamet
 
     return juce::AudioProcessorValueTreeState::ParameterLayout (
     {
-        MAKE_ROTARY_PARAMETER (Drive),
-        MAKE_ROTARY_PARAMETER (Tone),
-        MAKE_ROTARY_PARAMETER (Volume),
+        MAKE_ROTARY_PARAMETER (Drive,  1.65f),
+        MAKE_ROTARY_PARAMETER (Tone,   5.0f),
+        MAKE_ROTARY_PARAMETER (Volume, 8.35),
 
         MAKE_SWITCH_PARAMETER (HpLp,   "HP / LP"),
         MAKE_SWITCH_PARAMETER (Bypass, "Bypass")

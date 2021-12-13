@@ -20,8 +20,8 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
  */
 
 #pragma once
-
-extern juce::Rectangle<int> scaledKeepingCentre (const juce::Rectangle<int>& src, float scale);
+#include <Resvg4JUCE/Resvg4JUCE.h>
+#include <BinaryData.h>
 
 /**
  * A slightly hacky class to paint the slide switches from the Adobe XD based GUI design draft.
@@ -46,7 +46,7 @@ public:
     void resized() override
     {
         // All rasterized items should be rendered at a higher scale.
-        auto scale = juce::Desktop::getInstance().getDisplays().findDisplayForPoint (getBounds().getCentre()).scale;
+        auto scale = juce::Desktop::getInstance().getDisplays().getDisplayForPoint (getBounds().getCentre())->scale;
 
         constexpr auto insetFactor = 0.9f;
         auto newImageBounds = getLocalBounds().toFloat() * scale * insetFactor;

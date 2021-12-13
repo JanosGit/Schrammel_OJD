@@ -21,7 +21,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_dsp/juce_dsp.h>
+#include <jb_plugin_base/jb_plugin_base.h>
 #include "OJDParameters.h"
 #include "ToneStack.h"
 #include "Waveshaper.h"
@@ -52,9 +54,9 @@ public:
      */
     std::unique_ptr<jb::MessageOfTheDay::InfoAndUpdate> getMessageOfTheDay (int timeoutMilliseconds);
 
-    /** This processor will only process one channel */
-    static const int numChannels = 1;
 private:
+    int numChannels = 1;
+
     // References to all raw parameter values
     const std::atomic<float>& rawValueDrive;
     const std::atomic<float>& rawValueTone;
@@ -77,9 +79,9 @@ private:
         volume
     };
 
-    using HPF    = juce::dsp::IIR::Filter<float>;
-    using LPF    = juce::dsp::IIR::Filter<float>;
-    using Biquad = juce::dsp::IIR::Filter<float>;
+    using HPF    = juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>;
+    using LPF    = juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>;
+    using Biquad = juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>;
     using Gain   = juce::dsp::Gain<float>;
 
     juce::dsp::ProcessorChain<HPF, Biquad, Biquad, Gain, Waveshaper, Biquad, Biquad, Biquad, LPF, ToneStack, Gain> chain;
@@ -88,13 +90,13 @@ private:
     juce::SpinLock biquadParameterLock;
     std::atomic<bool> biquadParametersUpdated { false };
 
-    juce::dsp::IIR::Coefficients<float>::Ptr biquadPreDriveBoostCoeffs;
-    juce::dsp::IIR::Coefficients<float>::Ptr biquadPreDriveNotchCoeffs;
-    juce::dsp::IIR::Coefficients<float>::Ptr biquadPostDriveBoost1Coeffs;
-    juce::dsp::IIR::Coefficients<float>::Ptr biquadPostDriveBoost2Coeffs;
-    juce::dsp::IIR::Coefficients<float>::Ptr biquadPostDriveBoost3Coeffs;
+    std::array<float, 6> biquadPreDriveBoostCoeffs;
+    std::array<float, 6> biquadPreDriveNotchCoeffs;
+    std::array<float, 6> biquadPostDriveBoost1Coeffs;
+    std::array<float, 6> biquadPostDriveBoost2Coeffs;
+    std::array<float, 6> biquadPostDriveBoost3Coeffs;
 
-    jb::MessageOfTheDay messageOfTheDay { juce::URL ("https://schrammel.io/motd/ojd.json"), ProjectInfo::versionNumber };
+    jb::MessageOfTheDay messageOfTheDay { juce::URL ("https://schrammel.io/motd/ojd.json"), JucePlugin_VersionCode };
     std::future<jb::MessageOfTheDay::InfoAndUpdate> infoAndUpdateMessage;
 
     void checkForMessageOfTheDay();

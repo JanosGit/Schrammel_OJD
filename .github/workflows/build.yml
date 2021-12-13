@@ -1,0 +1,193 @@
+name: 👷‍♀️ Build, sign and create installers
+
+on: [push, pull_request]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: RelWithDebInfo
+
+
+jobs:
+
+  # The Matrix job for the compilation itself, executed on all supported OS.
+  # Additionally performs codesigning on macOS builds
+  build_plugin:
+    name: 🛠 🍎 📺 Build for macOS & Windows
+    runs-on: ${{ matrix.os.runner }}
+    
+    strategy:
+      matrix:
+        os:
+        - runner: macos-11
+          name: mac
+        - runner: windows-latest
+          name: windows
+          shell: powershell
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: (macOS) Install rust target aarch64-apple-darwin
+      run: rustup target add aarch64-apple-darwin
+      if: runner.os == 'macOS'
+
+    # We are creating the ${{runner.workspace}}/build directory to perform the build
+    - name: Configure CMake
+      working-directory: ${{ runner.workspace }}
+      run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+
+    - name: Build
+      working-directory: ${{ runner.workspace }}/build
+      run: cmake --build . --config ${{ env.BUILD_TYPE }}
+
+    # Move the built files to the output folder ==========================================================
+    - name: (macOS) Create output folder
+      run: mkdir ${{ runner.workspace }}/OJD-build-output
+      if: runner.os == 'macOS'
+
+    - name: (macOS) Move AU to output folder
+      run: mv ${{ runner.workspace }}/build/OJD-AU_artefacts/${{ env.BUILD_TYPE }}/AU ${{ runner.workspace }}/OJD-build-output
+      if: runner.os == 'macOS'
+
+    - name: (macOS) Move VST3 to output folder
+      run: mv ${{ runner.workspace }}/build/OJD-VST3_artefacts/${{ env.BUILD_TYPE }}/VST3 ${{ runner.workspace }}/OJD-build-output
+      if: runner.os == 'macOS'
+
+    - name: (Windows) Create output folder
+      run: New-Item -Path '${{ runner.workspace }}\OJD-build-output' -ItemType Directory
+      if: runner.os == 'Windows'
+
+    - name: (Windows) Copy VST3 to output folder
+      run: Copy-Item -Path '${{ runner.workspace }}\build\OJD-VST3_artefacts\${{ env.BUILD_TYPE }}\VST3' -Destination '${{ runner.workspace }}\OJD-build-output' -Recurse
+      if: runner.os == 'Windows'
+
+    # Start of macOS only codesigning step ==========================================================
+    - name: (macOS) Setup temporary keychain and add application signing certificate
+      uses: apple-actions/import-codesign-certs@v1
+      with: 
+        p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_APPLICATION }}
+        p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
+      if: runner.os == 'macOS'
+
+    - name: (macOS) Codesign AU plugin
+      working-directory: ${{ runner.workspace }}/OJD-build-output/AU
+      run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.component --timestamp
+      if: runner.os == 'macOS'
+
+    - name: (macOS) Codesign VST3 plugin
+      working-directory: ${{ runner.workspace }}/OJD-build-output/VST3
+      run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.vst3 --timestamp
+      if: runner.os == 'macOS'
+    # End of macOS only codesigning step ===========================================================
+
+    - name: Upload build artefacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: OJD-build-output-${{ matrix.os.name }}
+        path: ${{ runner.workspace }}/OJD-build-output
+            
+# =================================================================================================
+# The installer-relevant steps below are only executed on develop and master but not on feature-branches 
+# =================================================================================================
+
+    - name: Upload installer support files
+      uses: actions/upload-artifact@v2
+      with:
+        name: OJD-installer-files-${{ matrix.os.name }}
+        path: ${{ runner.workspace }}/Schrammel_OJD/Deployment/${{ matrix.os.name }}
+      if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
+
+
+  build_installer_mac:
+      name: 📦 🍎 Build, sign and notarize installer for macOS
+      runs-on: macos-11
+      if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
+      needs: build_plugin
+      steps:
+        - name: Download macOS build artefacts from previous job
+          uses: actions/download-artifact@v2
+          with: 
+            name: OJD-build-output-mac
+
+        - name: Download macOS installer files
+          uses: actions/download-artifact@v2
+          with: 
+            name: OJD-installer-files-mac
+
+        - name: Cleanup installer files
+          uses: geekyeggo/delete-artifact@v1
+          with:
+            name: OJD-installer-files-mac
+            
+        - name: Download Packages installer build tool
+          run: wget http://s.sudre.free.fr/Software/files/Packages.dmg
+
+        - name: Mount Packages image
+          run: hdiutil attach Packages.dmg
+
+        - name: Install Packages
+          run: sudo installer -pkg /Volumes/Packages\ 1.2.9/Install\ Packages.pkg -target /
+
+        - name: Build installer
+          run: packagesbuild Schrammel\ OJD.pkgproj
+
+        - name: Setup temporary keychain and add installer signing certificate
+          uses: apple-actions/import-codesign-certs@v1
+          with: 
+            p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_INSTALLER }}
+            p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
+
+        - name: Create folder for signed installer
+          run: mkdir OJD-installer-signed
+
+        - name: Sign installer
+          run: productsign -s "${{ secrets.APPLE_DEVELOPER_ID_INSTALLER }}" OJD-installer/Schrammel\ OJD.pkg OJD-installer-signed/Install\ OJD.pkg
+          
+        - name: Notarize installer
+          run: npx notarize-cli --file OJD-installer-signed/Install\ OJD.pkg --bundle-id io.schrammel.pkg --username ${{ secrets.APPLE_ID }} --password ${{ secrets.APPLE_NOTARIZATION_PW }}
+
+        - name: Create DMG
+          run: hdiutil create Install\ OJD.dmg -fs HFS+ -srcfolder OJD-installer-signed -format UDZO -volname Install\ OJD
+
+        - name: Upload DMG
+          uses: actions/upload-artifact@v2
+          with:
+            name: OJD-installer-mac
+            path: Install\ OJD.dmg
+
+  build_installer_windows:
+      name: 📦 📺 Build installer for Windows
+      runs-on: windows-latest
+      if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
+      needs: build_plugin
+      steps:
+        - name: Download Windows build artefacts from previous job
+          uses: actions/download-artifact@v2
+          with: 
+            name: OJD-build-output-windows
+
+        - name: Download Windows installer files
+          uses: actions/download-artifact@v2
+          with: 
+            name: OJD-installer-files-windows    
+
+        - name: Cleanup installer files
+          uses: geekyeggo/delete-artifact@v1
+          with:
+            name: OJD-installer-files-windows  
+
+        - name: Download Visual C++ redistributable
+          run: Invoke-WebRequest https://aka.ms/vs/16/release/vc_redist.x64.exe -O vc_redist.x64.exe
+          shell: powershell  
+
+        - name: Build installer
+          run: iscc "OJD Installer.iss"
+
+        - name: Upload installer
+          uses: actions/upload-artifact@v2
+          with:
+            name: OJD-installer-windows
+            path: "Output/Install OJD.exe"

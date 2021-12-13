@@ -21,15 +21,24 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 ]]
 
-juce_add_binary_data(EmbeddedSVGs
-        SOURCES background.svg
-                pedalHousingShadow.png
-                pedalHousing.svg
-                knob.svg
-                slideSwitchShadow.png
-                slideKnob.svg
-                hpLpBackground.svg
-                bypassBackground.svg
-                shadowOverlay.png
-                ledOn.svg
-                ledOff.svg)
+juce_add_binary_data(EmbeddedBinaryData
+    SOURCES
+        # Vector Graphics
+        Graphics/background.svg
+        Graphics/backside.svg
+        Graphics/pedalHousing.svg
+        Graphics/knob.svg
+        Graphics/slideKnob.svg
+        Graphics/hpLpBackground.svg
+        Graphics/bypassBackground.svg
+        Graphics/ledOn.svg
+        Graphics/ledOff.svg
+        Graphics/grommet-icons/settings-option.svg
+
+        # Raster Graphics
+        Graphics/slideSwitchShadow.png
+        Graphics/pedalHousingShadow.png
+        Graphics/shadowOverlay.png
+
+        # Fonts
+        Fonts/SourceCodePro-Regular.ttf)
