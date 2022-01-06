@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: RelWithDebInfo
+  BUILD_TYPE: Release
 
 
 jobs:
@@ -30,6 +30,14 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Fetch AAX SDK from private repository
+      run: gh release download --repo JanosGit/AAX_SDK 2.4.0 
+      env:
+        GITHUB_TOKEN: ${{ secrets.AAX_LIBRARY_REPOSITORY_TOKEN }}
+
+    - name: Unzip AAX SDK
+      run: tar -xf AAX-SDK-${{ matrix.os.name }}.zip
+
     - name: (macOS) Install rust target aarch64-apple-darwin
       run: rustup target add aarch64-apple-darwin
       if: runner.os == 'macOS'
@@ -37,7 +45,7 @@ jobs:
     # We are creating the ${{runner.workspace}}/build directory to perform the build
     - name: Configure CMake
       working-directory: ${{ runner.workspace }}
-      run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+      run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCOPY_PLUGIN_AFTER_BUILD=FALSE -DAAX_SDK_PATH=${{ runner.workspace }}/Schrammel_OJD/AAX-SDK-${{ matrix.os.name }}
 
     - name: Build
       working-directory: ${{ runner.workspace }}/build
@@ -56,12 +64,20 @@ jobs:
       run: mv ${{ runner.workspace }}/build/OJD-VST3_artefacts/${{ env.BUILD_TYPE }}/VST3 ${{ runner.workspace }}/OJD-build-output
       if: runner.os == 'macOS'
 
+    - name: (macOS) Move AAX to output folder
+      run: mv ${{ runner.workspace }}/build/OJD-AAX_artefacts/${{ env.BUILD_TYPE }}/AAX ${{ runner.workspace }}/OJD-build-output
+      if: runner.os == 'macOS'
+
     - name: (Windows) Create output folder
       run: New-Item -Path '${{ runner.workspace }}\OJD-build-output' -ItemType Directory
       if: runner.os == 'Windows'
 
     - name: (Windows) Copy VST3 to output folder
       run: Copy-Item -Path '${{ runner.workspace }}\build\OJD-VST3_artefacts\${{ env.BUILD_TYPE }}\VST3' -Destination '${{ runner.workspace }}\OJD-build-output' -Recurse
+      if: runner.os == 'Windows'
+
+    - name: (Windows) Copy AAX to output folder
+      run: Copy-Item -Path '${{ runner.workspace }}\build\OJD-AAX_artefacts\${{ env.BUILD_TYPE }}\AAX' -Destination '${{ runner.workspace }}\OJD-build-output' -Recurse
       if: runner.os == 'Windows'
 
     # Start of macOS only codesigning step ==========================================================
@@ -80,6 +96,11 @@ jobs:
     - name: (macOS) Codesign VST3 plugin
       working-directory: ${{ runner.workspace }}/OJD-build-output/VST3
       run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.vst3 --timestamp
+      if: runner.os == 'macOS'
+
+    - name: (macOS) Codesign AAX plugin
+      working-directory: ${{ runner.workspace }}/OJD-build-output/AAX
+      run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.aaxplugin --timestamp
       if: runner.os == 'macOS'
     # End of macOS only codesigning step ===========================================================
 
