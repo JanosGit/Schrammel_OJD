@@ -47,6 +47,10 @@ set (JSON_Install OFF CACHE INTERNAL "")
 add_subdirectory (Ext/JBPluginBase)
 add_subdirectory (Ext/Resvg4JUCE)
 
+if (NOT DEFINED COPY_PLUGIN_AFTER_BUILD)
+    set (COPY_PLUGIN_AFTER_BUILD TRUE)
+endif()
+
 function (add_ojd_version format)
 
 # Add the plugin target itself
@@ -55,7 +59,7 @@ juce_add_plugin (OJD-${format}
         COMPANY_NAME Schrammel
         PRODUCT_NAME "OJD"
 
-        COPY_PLUGIN_AFTER_BUILD TRUE
+        COPY_PLUGIN_AFTER_BUILD ${COPY_PLUGIN_AFTER_BUILD}
         FORMATS ${format}
 
         ${ARGN})
@@ -76,7 +80,6 @@ target_sources (OJD-${format} PRIVATE
 target_compile_definitions (OJD-${format}
         PUBLIC
         DONT_SET_USING_JUCE_NAMESPACE=1
-        JUCE_DISPLAY_SPLASH_SCREEN=0
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_STRICT_REFCOUNTEDPTR=1
@@ -105,7 +108,7 @@ target_link_libraries (OJD-${format} PRIVATE
 
 endfunction()
 
-add_ojd_version(VST3
+add_ojd_version (VST3
         # A four-character manufacturer id with at least one upper-case character
         PLUGIN_MANUFACTURER_CODE Srml
         # A unique four-character plugin id with at least one upper-case character
@@ -117,19 +120,29 @@ add_ojd_version(VST3
 
         VST3_CATEGORIES Fx Distortion)
 
+        target_compile_definitions (OJD-VST3 PRIVATE JUCE_DISPLAY_SPLASH_SCREEN=1)
+
 if (APPLE)
-add_ojd_version(AU
+add_ojd_version (AU
         # A four-character manufacturer id with at least one upper-case character
         PLUGIN_MANUFACTURER_CODE Srml
         # A unique four-character plugin id with at least one upper-case character
         PLUGIN_CODE Sojd
 
         AU_MAIN_TYPE kAudioUnitType_Effect)
+        target_compile_definitions (OJD-AU PRIVATE JUCE_DISPLAY_SPLASH_SCREEN=1)
 endif()
 
-if(AAX_SDK_PATH)
-    juce_set_aax_sdk_path(${AAX_SDK_PATH})
-    add_ojd_version(AAX
+if (AAX_SDK_PATH)
+
+    if (WIN32)
+        # Extra escaping is needed to not mess up the macro inside the AAX wrapper with the path created by the
+        # GitHub Actions runner
+        string (REPLACE "\\" "\\\\" AAX_SDK_PATH ${AAX_SDK_PATH})
+    endif()
+
+    juce_set_aax_sdk_path ("${AAX_SDK_PATH}")
+    add_ojd_version (AAX
             # A four-character manufacturer id with at least one upper-case character
             PLUGIN_MANUFACTURER_CODE Srml
             # A unique four-character plugin id with at least one upper-case character
@@ -138,7 +151,12 @@ if(AAX_SDK_PATH)
             AAX_IDENTIFIER io.schrammel.ojd
             AAX_CATEGORY AAX_ePlugInCategory_Harmonic)
 
-    target_compile_definitions(OJD-AAX PRIVATE JUCE_DISPLAY_SPLASH_SCREEN=1)
+    set_target_properties(OJD-AAX_AAX PROPERTIES OSX_ARCHITECTURES x86_64)
+    
+    target_compile_definitions (OJD-AAX
+        PRIVATE
+            JUCE_DISPLAY_SPLASH_SCREEN=1
+            _CRT_SECURE_NO_WARNINGS=1)
 endif()
 
 add_library (OJD-ALL_FORMATS INTERFACE)
