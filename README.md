@@ -10,10 +10,12 @@ Just add it to your FX chain before your digital amp simulation of choice and ge
 
 ![](Documentation/Images/OJD_Cubase.png)
 
-## License
-The OJD is licensed under a [GPLv3](https://www.gnu.org/licenses/licenses.en.html#GPL) license. This license applies to all parts of this repository except for 
-- The external third party dependencies that can be found as git submodules in the `Ext` subdirectory and contain their own license information. These licenses are all GPLv3 compatible, so the OJD as a combined product is under GPLv3 license
-- The Windows installer, found in the `Deployment/Windows` subdirectory, which is licensed under a [LGPLv3](https://www.gnu.org/licenses/licenses.en.html#LGPL) license as the distributed versions of the installer will contain the closed source Microsoft Visual C++ redistributable runtime library installer
+## Licence
+The OJD plugin and its source code is licensed under a [GPLv3](https://www.gnu.org/licenses/licenses.en.html#GPL) licence. This licence applies to all parts of this repository except for 
+
+- The AAX build of the plugin that links against the closed source Avid AAX SDK. Therefore, the AAX build is licensed under the [JUCE Personal licence](https://juce.com/get-juce) and you'll see the 'Made with JUCE' splash screen as required by that licence.
+- The external third party dependencies that can be found as git submodules in the `Ext` subdirectory and contain their own licence information. These licenses are all GPLv3 compatible, so the OJD as a combined product is under GPLv3 licence
+- The Windows installer, found in the `Deployment/Windows` subdirectory, which is licensed under a [LGPLv3](https://www.gnu.org/licenses/licenses.en.html#LGPL) licence as the distributed versions of the installer will contain the closed source Microsoft Visual C++ redistributable runtime library installer
 
 ## How to get the OJD? 🤷‍♀️🤷‍♂️
 
