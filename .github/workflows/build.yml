@@ -98,10 +98,10 @@ jobs:
       run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.vst3 --timestamp
       if: runner.os == 'macOS'
 
-    - name: (macOS) Codesign AAX plugin
-      working-directory: ${{ runner.workspace }}/OJD-build-output/AAX
-      run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.aaxplugin --timestamp
-      if: runner.os == 'macOS'
+    #- name: (macOS) Codesign AAX plugin
+    #  working-directory: ${{ runner.workspace }}/OJD-build-output/AAX
+    #  run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.aaxplugin --timestamp
+    #  if: runner.os == 'macOS'
     # End of macOS only codesigning step ===========================================================
 
     - name: Upload build artefacts
