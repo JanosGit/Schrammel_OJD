@@ -121,6 +121,37 @@ jobs:
         path: ${{ runner.workspace }}/Schrammel_OJD/Deployment/${{ matrix.os.name }}
       if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
 
+  sign_aax:
+      name: Codesign AAX plugin with propretary tools as required by Avid
+      runs-on: self-hosted
+      needs: build_plugin
+      steps:
+        - name: Download macOS build artefacts from previous job
+          uses: actions/download-artifact@v2
+          with: 
+            name: OJD-build-output-mac
+
+        - name: PWD
+          run: pwd
+
+        - name: LS
+          run: ls
+
+        - name: Setup temporary keychain and add application signing certificate
+          uses: apple-actions/import-codesign-certs@v1
+          with: 
+            p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_APPLICATION }}
+            p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
+        
+        - name: Do the signing
+          run: AAX_Signing -account ${{ secrets.PACE_ACCOUNT }} -guid ${{ secrets.AAX_SIGNING_GUID }} -codesignid  "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" -input ${{ runner.workspace }}/Schrammel_OJD/AAX/OJD.aaxplugin -output ${{ runner.workspace }}/Schrammel_OJD/AAX-signed/OJD.aaxplugin
+
+        - name: Upload signed artifact
+          uses: actions/upload-artifact@v2
+          with:
+            name: OJD-AAX-signed
+            path: ${{ runner.workspace }}/AAX-signed
+            if-no-files-found: error
 
   build_installer_mac:
       name: 📦 🍎 Build, sign and notarize installer for macOS
