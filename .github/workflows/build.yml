@@ -12,17 +12,26 @@ jobs:
   # The Matrix job for the compilation itself, executed on all supported OS.
   # Additionally performs codesigning on macOS builds
   build_plugin:
-    name: 🛠 🍎 📺 Build for macOS & Windows
-    runs-on: ${{ matrix.os.runner }}
+    name: 🛠 🍎 📺 🐧 Build for macOS, Windows and Linux
+    runs-on: ${{ matrix.os }}
     
     strategy:
       matrix:
-        os:
-        - runner: macos-11
+        os: [macos-11, windows-2022, ubuntu-18.04]
+        include:
+        - os: macos-11
           name: mac
-        - runner: windows-latest
+          aax-sdk: AAX-SDK-mac
+
+        - os: windows-2022
           name: windows
+          aax-sdk: AAX-SDK-windows
           shell: powershell
+
+        - os: ubuntu-18.04
+          name: linux
+          aax-sdk: 0
+
       fail-fast: false
 
     steps:
@@ -34,35 +43,41 @@ jobs:
       run: gh release download --repo JanosGit/AAX_SDK 2.4.0 
       env:
         GITHUB_TOKEN: ${{ secrets.AAX_LIBRARY_REPOSITORY_TOKEN }}
+      if: runner.os != 'Linux'
 
     - name: Unzip AAX SDK
-      run: tar -xf AAX-SDK-${{ matrix.os.name }}.zip
+      run: tar -xf AAX-SDK-${{ matrix.name }}.zip
+      if: runner.os != 'Linux'
 
     - name: (macOS) Install rust target aarch64-apple-darwin
       run: rustup target add aarch64-apple-darwin
       if: runner.os == 'macOS'
 
+    - name: (Linux) Install dependencies
+      run: sudo apt install ladspa-sdk libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev
+      if: runner.os == 'Linux'
+
     # We are creating the ${{runner.workspace}}/build directory to perform the build
     - name: Configure CMake
       working-directory: ${{ runner.workspace }}
-      run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCOPY_PLUGIN_AFTER_BUILD=FALSE -DAAX_SDK_PATH=${{ runner.workspace }}/Schrammel_OJD/AAX-SDK-${{ matrix.os.name }}
+      run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCOPY_PLUGIN_AFTER_BUILD=FALSE -DAAX_SDK_PATH=${{ matrix.aax-sdk }}
 
     - name: Build
       working-directory: ${{ runner.workspace }}/build
       run: cmake --build . --config ${{ env.BUILD_TYPE }}
 
     # Move the built files to the output folder ==========================================================
-    - name: (macOS) Create output folder
+    - name: (macOS/Linux) Create output folder
       run: mkdir ${{ runner.workspace }}/OJD-build-output
-      if: runner.os == 'macOS'
+      if: runner.os != 'Windows'
 
     - name: (macOS) Move AU to output folder
       run: mv ${{ runner.workspace }}/build/OJD-AU_artefacts/${{ env.BUILD_TYPE }}/AU ${{ runner.workspace }}/OJD-build-output
       if: runner.os == 'macOS'
 
-    - name: (macOS) Move VST3 to output folder
+    - name: (macOS/Linux) Move VST3 to output folder
       run: mv ${{ runner.workspace }}/build/OJD-VST3_artefacts/${{ env.BUILD_TYPE }}/VST3 ${{ runner.workspace }}/OJD-build-output
-      if: runner.os == 'macOS'
+      if: runner.os != 'Windows'
 
     - name: (macOS) Move AAX to output folder
       run: mv ${{ runner.workspace }}/build/OJD-AAX_artefacts/${{ env.BUILD_TYPE }}/AAX ${{ runner.workspace }}/OJD-build-output
@@ -107,7 +122,7 @@ jobs:
     - name: Upload build artefacts
       uses: actions/upload-artifact@v2
       with:
-        name: OJD-build-output-${{ matrix.os.name }}
+        name: OJD-build-output-${{ matrix.name }}
         path: ${{ runner.workspace }}/OJD-build-output
             
 # =================================================================================================
@@ -117,8 +132,8 @@ jobs:
     - name: Upload installer support files
       uses: actions/upload-artifact@v2
       with:
-        name: OJD-installer-files-${{ matrix.os.name }}
-        path: ${{ runner.workspace }}/Schrammel_OJD/Deployment/${{ matrix.os.name }}
+        name: OJD-installer-files-${{ matrix.name }}
+        path: ${{ runner.workspace }}/Schrammel_OJD/Deployment/${{ matrix.name }}
       if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
 
 

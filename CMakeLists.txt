@@ -71,14 +71,15 @@ target_compile_features (OJD-${format} PRIVATE cxx_std_14)
 jb_add_git_version_info (OJD-${format})
 
 # Adding all source files to the plugin target
-target_sources (OJD-${format} PRIVATE
+target_sources (OJD-${format}
+    PRIVATE
         Source/OJDPedalComponent.cpp
         Source/OJDAudioProcessorEditor.cpp
         Source/OJDProcessor.cpp
         Source/OJDParameters.cpp)
 
 target_compile_definitions (OJD-${format}
-        PUBLIC
+    PUBLIC
         DONT_SET_USING_JUCE_NAMESPACE=1
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
@@ -86,9 +87,9 @@ target_compile_definitions (OJD-${format}
         JUCE_VST3_CAN_REPLACE_VST2=0
         JB_INCLUDE_JSON=1)
 
-target_link_libraries (OJD-${format} PRIVATE
+target_link_libraries (OJD-${format}
+    PRIVATE
         # JUCE Modules
-        juce::juce_audio_utils
         juce::juce_dsp
 
         # Custom modules
@@ -106,7 +107,23 @@ target_link_libraries (OJD-${format} PRIVATE
         juce::juce_recommended_warning_flags
         juce::juce_recommended_config_flags)
 
+if (UNIX AND NOT APPLE)
+    set_target_properties (OJD-${format}
+        PROPERTIES
+            POSITION_INDEPENDENT_CODE TRUE)
+
+    set_target_properties (jb_git_version-OJD-${format}
+        PROPERTIES
+            POSITION_INDEPENDENT_CODE TRUE)
+endif()
+
 endfunction()
+
+if (UNIX AND NOT APPLE)
+    set_target_properties (EmbeddedBinaryData
+        PROPERTIES
+            POSITION_INDEPENDENT_CODE TRUE)
+endif()
 
 add_ojd_version (VST3
         # A four-character manufacturer id with at least one upper-case character
