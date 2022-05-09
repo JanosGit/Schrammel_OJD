@@ -120,7 +120,7 @@ add_ojd_version (VST3
 
         VST3_CATEGORIES Fx Distortion)
 
-        target_compile_definitions (OJD-VST3 PRIVATE JUCE_DISPLAY_SPLASH_SCREEN=1)
+        target_compile_definitions (OJD-VST3 PRIVATE JUCE_DISPLAY_SPLASH_SCREEN=0)
 
 if (APPLE)
 add_ojd_version (AU
@@ -130,7 +130,7 @@ add_ojd_version (AU
         PLUGIN_CODE Sojd
 
         AU_MAIN_TYPE kAudioUnitType_Effect)
-        target_compile_definitions (OJD-AU PRIVATE JUCE_DISPLAY_SPLASH_SCREEN=1)
+        target_compile_definitions (OJD-AU PRIVATE JUCE_DISPLAY_SPLASH_SCREEN=0)
 endif()
 
 if (AAX_SDK_PATH)
