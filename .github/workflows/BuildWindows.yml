@@ -1,0 +1,98 @@
+name: 👷‍♀️ Build for Windows
+
+on: push
+
+jobs:
+
+  build_plugin_windows:
+    name: 👷‍♀️ 📺 Build and codesign plugin for Windows
+    runs-on: windows-2022
+    steps:
+      # Setting up dependencies =============================================================================
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          
+      - name: Fetch AAX SDK from private repository
+        run: gh release download --repo JanosGit/AAX_SDK 2.4.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.AAX_LIBRARY_REPOSITORY_TOKEN }}
+
+      - name: Unzip AAX SDK
+        run: tar -xf AAX-SDK-windows.zip
+        
+        
+      # CMake configuration ================================================================================
+      - name: Configure CMake
+        working-directory: ${{ runner.workspace }}
+        run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCOPY_PLUGIN_AFTER_BUILD=FALSE -DAAX_SDK_PATH=AAX-SDK-windows
+
+
+      # Build ==============================================================================================
+      - name: Build
+        working-directory: ${{ runner.workspace }}/build
+        run: cmake --build . --config Release
+
+
+      # Move the built files to the output folder ==========================================================
+      - name: Create output folder
+        run: New-Item -Path '${{ runner.workspace }}\OJD-build-output' -ItemType Directory
+        if: runner.os == 'Windows'
+
+      - name: Copy VST3 to output folder
+        run: Copy-Item -Path '${{ runner.workspace }}\build\OJD-VST3_artefacts\Release\VST3' -Destination '${{ runner.workspace }}\OJD-build-output' -Recurse
+        if: runner.os == 'Windows'
+
+      - name: Copy AAX to output folder
+        run: Copy-Item -Path '${{ runner.workspace }}\build\OJD-AAX_artefacts\Release\AAX' -Destination '${{ runner.workspace }}\OJD-build-output' -Recurse
+        if: runner.os == 'Windows'
+
+
+      # Upload build artifacts ============================================================================
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: OJD-build-output-windows
+          path: ${{ runner.workspace }}/OJD-build-output
+
+      - name: Upload installer support files
+        uses: actions/upload-artifact@v2
+        with:
+          name: OJD-installer-files-windows
+          path: ${{ runner.workspace }}/Schrammel_OJD/Deployment/windows
+        if: github.event.pull_request.merged
+
+
+  build_installer_windows:
+    name: 📦 📺 Build installer for Windows
+    runs-on: windows-latest
+    if: github.event.pull_request.merged
+    needs: build_plugin_windows
+    steps:
+      - name: Download Windows build artefacts from previous job
+        uses: actions/download-artifact@v2
+        with:
+          name: OJD-build-output-windows
+
+      - name: Download Windows installer files
+        uses: actions/download-artifact@v2
+        with:
+          name: OJD-installer-files-windows
+
+      - name: Cleanup installer files
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: OJD-installer-files-windows
+
+      - name: Download Visual C++ redistributable
+        run: Invoke-WebRequest https://aka.ms/vs/16/release/vc_redist.x64.exe -O vc_redist.x64.exe
+        shell: powershell
+
+      - name: Build installer
+        run: iscc "OJD Installer.iss"
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v2
+        with:
+          name: OJD-installer-windows
+          path: "Output/Install OJD.exe"
