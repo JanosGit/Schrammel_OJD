@@ -1,0 +1,45 @@
+name: 👷‍♀️ Build for Linux
+
+on: push
+
+jobs:
+
+  build_plugin_linux:
+    name: 👷‍♀️ 🐧 Build and codesign plugin for Linux
+    runs-on: ubuntu-18.04
+    steps:
+      # Setting up dependencies =============================================================================
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install packets
+        run: sudo apt install ladspa-sdk libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev
+
+
+      # CMake configuration ================================================================================
+      - name: Configure CMake
+        working-directory: ${{ runner.workspace }}
+        run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCMAKE_BUILD_TYPE=Release -DCOPY_PLUGIN_AFTER_BUILD=FALSE
+
+
+      # Build ==============================================================================================
+      - name: Build
+        working-directory: ${{ runner.workspace }}/build
+        run: cmake --build .
+
+
+      # Move the built files to the output folder ==========================================================
+      - name: Create output folder
+        run: mkdir ${{ runner.workspace }}/OJD-build-output
+
+      - name: Move VST3 to output folder
+        run: mv ${{ runner.workspace }}/build/OJD-VST3_artefacts/Release/VST3 ${{ runner.workspace }}/OJD-build-output
+
+
+      # Upload build artifacts ============================================================================
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: OJD-build-output-linux
+          path: ${{ runner.workspace }}/OJD-build-output

@@ -1,0 +1,144 @@
+name: 👷‍♀️ Build and codesign for macOS
+
+on: push
+
+jobs:
+
+  build_plugin_mac:
+    name: 👷‍♀️ 🍎 Build and codesign plugin for macOS
+    runs-on: macos-11
+    steps:
+      # Setting up dependencies =============================================================================
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Fetch AAX SDK from private repository
+        run: gh release download --repo JanosGit/AAX_SDK 2.4.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.AAX_LIBRARY_REPOSITORY_TOKEN }}
+
+      - name: Unzip AAX SDK
+        run: tar -xf AAX-SDK-mac.zip
+
+      - name: Install rust target aarch64-apple-darwin
+        run: rustup target add aarch64-apple-darwin
+
+
+      # CMake configuration ================================================================================
+      - name: Configure CMake
+        working-directory: ${{ runner.workspace }}
+        run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCOPY_PLUGIN_AFTER_BUILD=FALSE -DAAX_SDK_PATH=AAX-SDK-mac
+
+
+      # Build ==============================================================================================
+      - name: Build
+        working-directory: ${{ runner.workspace }}/build
+        run: cmake --build . --config Release
+
+
+      # Move the built files to the output folder ==========================================================
+      - name: Create output folder
+        run: mkdir ${{ runner.workspace }}/OJD-build-output
+
+      - name: Move AU to output folder
+        run: mv ${{ runner.workspace }}/build/OJD-AU_artefacts/AU ${{ runner.workspace }}/OJD-build-output
+
+      - name: Move VST3 to output folder
+        run: mv ${{ runner.workspace }}/build/OJD-VST3_artefacts/VST3 ${{ runner.workspace }}/OJD-build-output
+
+      - name: Move AAX to output folder
+        run: mv ${{ runner.workspace }}/build/OJD-AAX_artefacts/AAX ${{ runner.workspace }}/OJD-build-output
+
+
+      # Codesigning ========================================================================================
+      - name: Setup temporary keychain and add application signing certificate
+        uses: apple-actions/import-codesign-certs@v1
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_APPLICATION }}
+          p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
+
+      - name: (macOS) Codesign AU plugin
+        working-directory: ${{ runner.workspace }}/OJD-build-output/AU
+        run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.component --timestamp
+
+      - name: (macOS) Codesign VST3 plugin
+        working-directory: ${{ runner.workspace }}/OJD-build-output/VST3
+        run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.vst3 --timestamp
+
+      - name: (macOS) Codesign AAX plugin
+        working-directory: ${{ runner.workspace }}/OJD-build-output/AAX
+        run: codesign -s "${{ secrets.APPLE_DEVELOPER_ID_APPLICATION }}" OJD.aaxplugin --timestamp
+
+
+      # Upload build artifacts ============================================================================
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: OJD-build-output-mac
+          path: ${{ runner.workspace }}/OJD-build-output
+          
+      - name: Upload installer support files
+        uses: actions/upload-artifact@v2
+        with:
+          name: OJD-installer-files-mac
+          path: ${{ runner.workspace }}/Schrammel_OJD/Deployment/mac
+        if: github.event.pull_request.merged
+
+
+  build_installer_mac:
+    name: 📦 🍎 Build, sign and notarize installer for macOS
+    runs-on: macos-11
+    if: github.event.pull_request.merged
+    needs: build_plugin_mac
+    steps:
+      - name: Download macOS build artefacts from previous job
+        uses: actions/download-artifact@v2
+        with:
+          name: OJD-build-output-mac
+
+      - name: Download macOS installer files
+        uses: actions/download-artifact@v2
+        with:
+          name: OJD-installer-files-mac
+
+      - name: Cleanup installer files
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: OJD-installer-files-mac
+
+      - name: Download Packages installer build tool
+        run: wget http://s.sudre.free.fr/Software/files/Packages.dmg
+
+      - name: Mount Packages image
+        run: hdiutil attach Packages.dmg
+
+      - name: Install Packages
+        run: sudo installer -pkg /Volumes/Packages\ 1.2.9/Install\ Packages.pkg -target /
+
+      - name: Build installer
+        run: packagesbuild Schrammel\ OJD.pkgproj
+
+      - name: Setup temporary keychain and add installer signing certificate
+        uses: apple-actions/import-codesign-certs@v1
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERTIFICATE_INSTALLER }}
+          p12-password: ${{ secrets.APPLE_CERTIFICATE_PW }}
+
+      - name: Create folder for signed installer
+        run: mkdir OJD-installer-signed
+
+      - name: Sign installer
+        run: productsign -s "${{ secrets.APPLE_DEVELOPER_ID_INSTALLER }}" OJD-installer/Schrammel\ OJD.pkg OJD-installer-signed/Install\ OJD.pkg
+
+      - name: Notarize installer
+        run: npx notarize-cli --file OJD-installer-signed/Install\ OJD.pkg --bundle-id io.schrammel.pkg --username ${{ secrets.APPLE_ID }} --password ${{ secrets.APPLE_NOTARIZATION_PW }}
+
+      - name: Create DMG
+        run: hdiutil create Install\ OJD.dmg -fs HFS+ -srcfolder OJD-installer-signed -format UDZO -volname Install\ OJD
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v2
+        with:
+          name: OJD-installer-mac
+          path: Install\ OJD.dmg
