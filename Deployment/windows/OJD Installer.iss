@@ -3,7 +3,8 @@ AppName=OJD
 AppVersion=0.9.8
 DefaultDirName={commoncf64}
 DefaultGroupName=OJD
-OutputBaseFilename="Install OJD"
+OutputBaseFilename="Install OJD" 
+DisableDirPage=yes
 
 [Files]
 Source: "VST3\OJD.vst3"; DestDir: "{commoncf64}\VST3"; Flags: recursesubdirs
