@@ -13,13 +13,13 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Fetch AAX SDK from private repository
-        run: gh release download --repo JanosGit/AAX_SDK 2.4.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.AAX_LIBRARY_REPOSITORY_TOKEN }}
+      #- name: Fetch AAX SDK from private repository
+      #  run: gh release download --repo JanosGit/AAX_SDK 2.4.0
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.AAX_LIBRARY_REPOSITORY_TOKEN }}
 
-      - name: Unzip AAX SDK
-        run: tar -xf AAX-SDK-mac.zip
+      #- name: Unzip AAX SDK
+      #  run: tar -xf AAX-SDK-mac.zip
 
       - name: Install rust target aarch64-apple-darwin
         run: rustup target add aarch64-apple-darwin
@@ -28,7 +28,7 @@ jobs:
       # CMake configuration ================================================================================
       - name: Configure CMake
         working-directory: ${{ runner.workspace }}
-        run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCOPY_PLUGIN_AFTER_BUILD=FALSE -DAAX_SDK_PATH=AAX-SDK-mac
+        run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCOPY_PLUGIN_AFTER_BUILD=FALSE #-DAAX_SDK_PATH=AAX-SDK-mac
 
 
       # Build ==============================================================================================
@@ -47,8 +47,8 @@ jobs:
       - name: Move VST3 to output folder
         run: mv ${{ runner.workspace }}/build/OJD-VST3_artefacts/VST3 ${{ runner.workspace }}/OJD-build-output
 
-      - name: Move AAX to output folder
-        run: mv ${{ runner.workspace }}/build/OJD-AAX_artefacts/AAX ${{ runner.workspace }}/OJD-build-output
+      #- name: Move AAX to output folder
+      #  run: mv ${{ runner.workspace }}/build/OJD-AAX_artefacts/AAX ${{ runner.workspace }}/OJD-build-output
 
 
       # Codesigning ========================================================================================

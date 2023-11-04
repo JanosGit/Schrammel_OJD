@@ -13,19 +13,19 @@ jobs:
         with:
           submodules: recursive
           
-      - name: Fetch AAX SDK from private repository
-        run: gh release download --repo JanosGit/AAX_SDK 2.4.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.AAX_LIBRARY_REPOSITORY_TOKEN }}
+      #- name: Fetch AAX SDK from private repository
+      #  run: gh release download --repo JanosGit/AAX_SDK 2.4.0
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.AAX_LIBRARY_REPOSITORY_TOKEN }}
 
-      - name: Unzip AAX SDK
-        run: tar -xf AAX-SDK-windows.zip
+      #- name: Unzip AAX SDK
+      #  run: tar -xf AAX-SDK-windows.zip
         
         
       # CMake configuration ================================================================================
       - name: Configure CMake
         working-directory: ${{ runner.workspace }}
-        run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCOPY_PLUGIN_AFTER_BUILD=FALSE -DAAX_SDK_PATH=AAX-SDK-windows
+        run: cmake -S Schrammel_OJD -B ${{ runner.workspace }}/build -DCOPY_PLUGIN_AFTER_BUILD=FALSE #-DAAX_SDK_PATH=AAX-SDK-windows
 
 
       # Build ==============================================================================================
@@ -43,9 +43,9 @@ jobs:
         run: Copy-Item -Path '${{ runner.workspace }}\build\OJD-VST3_artefacts\Release\VST3' -Destination '${{ runner.workspace }}\OJD-build-output' -Recurse
         if: runner.os == 'Windows'
 
-      - name: Copy AAX to output folder
-        run: Copy-Item -Path '${{ runner.workspace }}\build\OJD-AAX_artefacts\Release\AAX' -Destination '${{ runner.workspace }}\OJD-build-output' -Recurse
-        if: runner.os == 'Windows'
+      #- name: Copy AAX to output folder
+      #  run: Copy-Item -Path '${{ runner.workspace }}\build\OJD-AAX_artefacts\Release\AAX' -Destination '${{ runner.workspace }}\OJD-build-output' -Recurse
+      #  if: runner.os == 'Windows'
 
 
       # Upload build artifacts ============================================================================
