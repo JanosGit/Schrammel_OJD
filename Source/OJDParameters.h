@@ -99,5 +99,5 @@ struct OJDParameters
      * The preset manager will listen to all parameters in this array. Changing those will make the
      * preset state turn "dirty"
      */
-    static juce::StringArray getPresetMangagerParameters();
+    static juce::StringArray getPresetManagerParameters();
 };
