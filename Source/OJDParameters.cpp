@@ -48,7 +48,7 @@ float OJDParameters::Sliders::Volume::dBValueFromRawValue (const std::atomic<flo
 }
 
 //================ String <-> value conversion =========================================================================
-juce::String stringWithMaxLength (juce::String&& s, int maximumStringLength)
+static juce::String stringWithMaxLength (juce::String&& s, int maximumStringLength)
 {
     return maximumStringLength > 0 ? s.substring (0, maximumStringLength) : s;
 }
@@ -89,11 +89,11 @@ bool OJDParameters::Switches::Bypass::isActive (const std::atomic<float>& rawVal
 juce::AudioProcessorValueTreeState::ParameterLayout OJDParameters::createParameterLayout()
 {
 #define MAKE_ROTARY_PARAMETER(Name, defaultValue) \
-    std::make_unique<juce::AudioParameterFloat> (Sliders::Name::id, #Name, Sliders::displayRange, defaultValue)
+    std::make_unique<juce::AudioParameterFloat> (juce::ParameterID (Sliders::Name::id, 1), #Name, Sliders::displayRange, defaultValue)
 
-#define MAKE_SWITCH_PARAMETER(Name, displayName)                                             \
-    std::make_unique<juce::AudioParameterBool>  (Switches::Name::id, displayName, false, "", \
-                                                 Switches::Name::stringFromBoolConversion,   \
+#define MAKE_SWITCH_PARAMETER(Name, displayName)                                                                    \
+    std::make_unique<juce::AudioParameterBool>  (juce::ParameterID (Switches::Name::id, 1), displayName, false, "", \
+                                                 Switches::Name::stringFromBoolConversion,                          \
                                                  Switches::Name::boolFromStringConversion)
 
     return juce::AudioProcessorValueTreeState::ParameterLayout (
@@ -107,7 +107,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout OJDParameters::createParamet
     });
 }
 
-juce::StringArray OJDParameters::getPresetMangagerParameters()
+juce::StringArray OJDParameters::getPresetManagerParameters()
 {
     return { Sliders::Drive::id, Sliders::Tone::id, Sliders::Volume::id, Switches::HpLp::id };
 }

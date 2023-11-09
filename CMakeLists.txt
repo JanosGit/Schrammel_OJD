@@ -64,8 +64,8 @@ juce_add_plugin (OJD-${format}
 
         ${ARGN})
 
-# We want to compile the plugin with C++14
-target_compile_features (OJD-${format} PRIVATE cxx_std_14)
+# We want to compile the plugin with C++20
+target_compile_features (OJD-${format} PRIVATE cxx_std_20)
 
 # Gather some info regarding our git commit to inject them into a header file.
 jb_add_git_version_info (OJD-${format})

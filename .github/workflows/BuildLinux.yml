@@ -6,7 +6,7 @@ jobs:
 
   build_plugin_linux:
     name: 👷‍♀️ 🐧 Build and codesign plugin for Linux
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       # Setting up dependencies =============================================================================
       - uses: actions/checkout@v2
